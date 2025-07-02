@@ -146,8 +146,15 @@
                     </a>
                 </li> --}}
 
+                <li class="nav-item {{ Route::is('news.*') ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('news.index') }}">
+                        <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-news fs-2"></i></span>
+                        <span class="nav-link-title"> News </span>
+                    </a>
+                </li>
+
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ route('logout') }}">
+                    <a class="nav-link text-danger" href="{{ route('logout') }}">
                         <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-logout fs-2"></i></span>
                         <span class="nav-link-title"> Logout </span>
                     </a>

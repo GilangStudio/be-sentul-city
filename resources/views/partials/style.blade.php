@@ -5,6 +5,10 @@
 
 <style>
     @import url("https://rsms.me/inter/inter.css");
+
+    .modal-blur {
+        margin: 0 !important;
+    }
 </style>
 
 @stack('styles')
