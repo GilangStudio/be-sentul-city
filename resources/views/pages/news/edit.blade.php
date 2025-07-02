@@ -141,6 +141,27 @@
                         @enderror
                         <small class="form-hint">Leave empty to use current date and time when publishing.</small>
                     </div>
+
+                    <div class="mb-3">
+                        <label class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="is_featured" value="1" 
+                                {{ old('is_featured', $news->is_featured) ? 'checked' : '' }} id="featured-checkbox">
+                            <span class="form-check-label">Featured on Home Page</span>
+                        </label>
+                        @error('is_featured')
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                        @enderror
+                        <small class="form-hint">
+                            <i class="ti ti-star me-1"></i>
+                            Only published news can be featured. Only one news can be featured at a time.
+                        </small>
+                        @if($news->is_featured)
+                        <small class="text-success d-block mt-1">
+                            <i class="ti ti-check me-1"></i>
+                            This news is currently featured on home page.
+                        </small>
+                        @endif
+                    </div>
                     
                     <div class="mb-0">
                         <label class="form-label text-secondary">Article Slug</label>
@@ -384,6 +405,27 @@
             imageInput.value = '';
             imagePreview.innerHTML = '';
         };
+
+        const featuredCheckbox = document.getElementById('featured-checkbox');
+
+        function toggleFeaturedAvailability() {
+            if (statusSelect.value === 'published') {
+                featuredCheckbox.disabled = false;
+
+                removeAlert();
+            } else {
+                featuredCheckbox.disabled = true;
+                featuredCheckbox.checked = false;
+                
+                // Show warning if currently featured
+                if ({{ $news->is_featured ? 'true' : 'false' }}) {
+                    showAlert(statusSelect, 'warning', 'Changing to draft will remove featured status from this news.', -1);
+                }
+            }
+        }
+
+        statusSelect.addEventListener('change', toggleFeaturedAvailability);
+        toggleFeaturedAvailability();
 
         // Form submission with loading state
         const form = document.getElementById('edit-form');

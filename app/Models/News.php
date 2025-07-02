@@ -10,7 +10,8 @@ class News extends Model
     protected $guarded = ['id'];
 
     protected $casts = [
-        'published_at' => 'datetime'
+        'published_at' => 'datetime',
+        'is_featured' => 'boolean'
     ];
 
     // Accessors
@@ -56,5 +57,10 @@ class News extends Model
     public function scopeDraft($query)
     {
         return $query->where('status', 'draft');
+    }
+
+    public function scopeFeatured($query)
+    {
+        return $query->where('is_featured', true);
     }
 }

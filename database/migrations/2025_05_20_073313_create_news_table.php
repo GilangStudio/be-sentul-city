@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('meta_keywords')->nullable();
             $table->string('image_path')->nullable();
             $table->enum('status', ['draft', 'published'])->default('draft');
+            $table->boolean('is_featured')->default(false);
             $table->timestamp('published_at')->nullable();
             $table->timestamps();
         });

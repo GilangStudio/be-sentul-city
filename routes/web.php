@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\HomePageController;
+use App\Http\Controllers\SettingsController;
 
 Route::middleware(['guest'])->group(function () {
     Route::get('/login', [AuthController::class, 'login'])->name('login');
@@ -30,6 +31,12 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/{news}/edit', [NewsController::class, 'edit'])->name('edit');
         Route::put('/{news}', [NewsController::class, 'update'])->name('update');
         Route::delete('/{news}', [NewsController::class, 'destroy'])->name('destroy');
+    });
+
+    Route::prefix('settings')->name('settings.')->group(function () {
+        Route::get('/', [SettingsController::class, 'index'])->name('index');
+        Route::put('/profile', [SettingsController::class, 'updateProfile'])->name('profile.update');
+        Route::put('/password', [SettingsController::class, 'updatePassword'])->name('password.update');
     });
 
     Route::get('/logout', [AuthController::class, 'logout'])->name('logout');

@@ -116,6 +116,22 @@
                         @enderror
                         <small class="form-hint">Leave empty to use current date and time.</small>
                     </div>
+
+                    <div class="mb-3">
+                        <label class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="is_featured" value="1" 
+                                   {{ old('is_featured') ? 'checked' : '' }} id="featured-checkbox">
+                            <span class="form-check-label">Featured on Home Page</span>
+                        </label>
+                        @error('is_featured')
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                        @enderror
+                        <small class="form-hint">
+                            <i class="ti ti-star me-1"></i>
+                            Only published news can be featured. Only one news can be featured at a time.
+                        </small>
+                    </div>
+                    
                 </div>
             </div>
 
@@ -277,6 +293,20 @@
             imageInput.value = '';
             imagePreview.innerHTML = '';
         };
+
+        const featuredCheckbox = document.getElementById('featured-checkbox');
+
+        function toggleFeaturedAvailability() {
+            if (statusSelect.value === 'published') {
+                featuredCheckbox.disabled = false;
+            } else {
+                featuredCheckbox.disabled = true;
+                featuredCheckbox.checked = false;
+            }
+        }
+
+        statusSelect.addEventListener('change', toggleFeaturedAvailability);
+        toggleFeaturedAvailability();
 
         // Form submission loading state
         const form = document.querySelector('form');

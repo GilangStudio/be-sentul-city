@@ -177,6 +177,11 @@
                                 <div>
                                     <div class="fw-bold text-dark mb-1" data-searchable="title">
                                         {{ $article->title }}
+                                        @if($article->is_featured)
+                                        <span class="badge bg-yellow-lt ms-1">
+                                            <i class="ti ti-star me-1"></i>Featured
+                                        </span>
+                                        @endif
                                     </div>
                                     <div class="text-secondary small mb-2" style="line-height: 1.4;">
                                         {{ Str::limit(strip_tags($article->content), 100) }}

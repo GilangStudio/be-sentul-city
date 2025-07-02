@@ -52,6 +52,7 @@ class NewsController extends Controller
             'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120', // 5MB
             'published_at' => 'nullable|date',
             'status' => 'required|in:draft,published',
+            'is_featured' => 'nullable|boolean',
         ], [
             'title.required' => 'Title is required',
             'title.unique' => 'Title already exists',
@@ -82,12 +83,24 @@ class NewsController extends Controller
                 );
             }
 
-            // Set published_at
+            if ($request->has('is_featured') && $request->is_featured && $request->status !== 'published') {
+                return redirect()->back()
+                               ->withInput()
+                               ->withErrors(['is_featured' => 'News must be published to be featured on home page.']);
+            }
+            
+            if ($request->has('is_featured') && $request->is_featured && $request->status === 'published') {
+                News::where('is_featured', true)->update(['is_featured' => false]);
+            }
+            
             $publishedAt = null;
+            $isFeatured = false;
+            
             if ($request->status === 'published') {
                 $publishedAt = $request->published_at ? $request->published_at : now();
+                $isFeatured = $request->has('is_featured') && $request->is_featured;
             }
-
+            
             News::create([
                 'title' => $request->title,
                 'slug' => $slug,
@@ -98,6 +111,7 @@ class NewsController extends Controller
                 'image_path' => $imagePath,
                 'status' => $request->status,
                 'published_at' => $publishedAt,
+                'is_featured' => $isFeatured,
             ]);
 
             return redirect()->route('news.index')
@@ -126,6 +140,7 @@ class NewsController extends Controller
             'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
             'published_at' => 'nullable|date',
             'status' => 'required|in:draft,published',
+            'is_featured' => 'nullable|boolean',
         ], [
             'title.required' => 'Title is required',
             'title.unique' => 'Title already exists',
@@ -154,16 +169,31 @@ class NewsController extends Controller
                 1200
             );
 
-            // Handle published_at
+            if ($request->has('is_featured') && $request->is_featured && $request->status !== 'published') {
+                return redirect()->back()
+                               ->withInput()
+                               ->withErrors(['is_featured' => 'News must be published to be featured on home page.']);
+            }
+            
+            if ($request->has('is_featured') && $request->is_featured && $request->status === 'published') {
+                News::where('is_featured', true)
+                    ->where('id', '!=', $news->id)
+                    ->update(['is_featured' => false]);
+            }
+            
             $publishedAt = $news->published_at;
+            $isFeatured = false;
+            
             if ($request->status === 'published') {
                 if (!$publishedAt || $request->published_at) {
                     $publishedAt = $request->published_at ? $request->published_at : now();
                 }
+                $isFeatured = $request->has('is_featured') && $request->is_featured;
             } else {
                 $publishedAt = null;
+                $isFeatured = false;
             }
-
+            
             $news->update([
                 'title' => $request->title,
                 'slug' => $slug,
@@ -174,6 +204,7 @@ class NewsController extends Controller
                 'image_path' => $imagePath,
                 'status' => $request->status,
                 'published_at' => $publishedAt,
+                'is_featured' => $isFeatured,
             ]);
 
             return redirect()->back()
