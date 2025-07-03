@@ -146,10 +146,34 @@
                     </a>
                 </li> --}}
 
-                <li class="nav-item {{ Route::is('news.*') ? 'active' : '' }}">
-                    <a class="nav-link" href="{{ route('news.index') }}">
+                <li class="nav-item dropdown {{ Route::is('news.*') ? 'active' : '' }}">
+                    <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" data-bs-auto-close="false"
+                        role="button" aria-expanded="false">
                         <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-news fs-2"></i></span>
                         <span class="nav-link-title"> News </span>
+                    </a>
+                    <div class="dropdown-menu {{ Route::is('news.*') ? 'show' : '' }}">
+                        <div class="dropdown-menu-columns">
+                            <div class="dropdown-menu-column">
+                                <a class="dropdown-item {{ Route::is('news.categories.*') ? 'active' : '' }}"
+                                    href="{{ route('news.categories.index') }}">
+                                    Category
+                                </a>
+                                <a class="dropdown-item {{ Route::is('news.*') && !Route::is('news.categories.*') ? 'active' : '' }}"
+                                    href="{{ route('news.index') }}">
+                                    All News
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+
+                <li class="nav-item {{ Route::is('promos.*') ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('promos.index') }}">
+                        <span class="nav-link-icon d-md-none d-lg-inline-block">
+                            <i class="ti ti-photo fs-2"></i>
+                        </span>
+                        <span class="nav-link-title">Promos</span>
                     </a>
                 </li>
 

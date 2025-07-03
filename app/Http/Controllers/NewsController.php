@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\News;
+use App\Models\NewsCategory;
 use Illuminate\Http\Request;
 use App\Services\ImageService;
 use App\Services\GeneratorService;
@@ -11,7 +12,7 @@ class NewsController extends Controller
 {
     public function index(Request $request)
     {
-        $query = News::query();
+        $query = News::with('category');
         
         // Search functionality
         if ($request->filled('search')) {
@@ -26,25 +27,41 @@ class NewsController extends Controller
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
+
+        // Category filter
+        if ($request->filled('category')) {
+            $query->where('category_id', $request->category);
+        }
         
         // Order by published_at and created_at
         $news = $query->orderBy('published_at', 'desc')
                      ->orderBy('created_at', 'desc')
                      ->paginate(10)
                      ->appends($request->query());
+
+        // Get categories for filter
+        $categories = NewsCategory::active()->ordered()->get();
         
-        return view('pages.news.index', compact('news'));
+        return view('pages.news.index', compact('news', 'categories'));
     }
 
     public function create()
     {
-        return view('pages.news.create');
+        $categories = NewsCategory::active()->ordered()->get();
+        
+        if ($categories->isEmpty()) {
+            return redirect()->route('news.categories.index')
+                           ->with('error', 'Please create at least one news category before adding news articles.');
+        }
+
+        return view('pages.news.create', compact('categories'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'title' => 'required|string|max:255|unique:news,title',
+            'category_id' => 'required|exists:news_categories,id',
+            'title' => 'required|string|max:255',
             'content' => 'required|string',
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:500',
@@ -54,6 +71,8 @@ class NewsController extends Controller
             'status' => 'required|in:draft,published',
             'is_featured' => 'nullable|boolean',
         ], [
+            'category_id.required' => 'Category is required',
+            'category_id.exists' => 'Selected category is invalid',
             'title.required' => 'Title is required',
             'title.unique' => 'Title already exists',
             'title.max' => 'Title cannot exceed 255 characters',
@@ -69,6 +88,14 @@ class NewsController extends Controller
         ]);
 
         try {
+            // Check if selected category is active
+            $category = NewsCategory::findOrFail($request->category_id);
+            if (!$category->is_active) {
+                return redirect()->back()
+                               ->withInput()
+                               ->withErrors(['category_id' => 'Selected category is not active.']);
+            }
+
             // Generate slug
             $slug = GeneratorService::generateSlug(new News(), $request->title);
 
@@ -102,6 +129,7 @@ class NewsController extends Controller
             }
             
             News::create([
+                'category_id' => $request->category_id,
                 'title' => $request->title,
                 'slug' => $slug,
                 'content' => $request->content,
@@ -126,13 +154,15 @@ class NewsController extends Controller
 
     public function edit(News $news)
     {
-        return view('pages.news.edit', compact('news'));
+        $categories = NewsCategory::active()->ordered()->get();
+        return view('pages.news.edit', compact('news', 'categories'));
     }
 
     public function update(Request $request, News $news)
     {
         $request->validate([
-            'title' => 'required|string|max:255|unique:news,title,' . $news->id,
+            'category_id' => 'required|exists:news_categories,id',
+            'title' => 'required|string|max:255',
             'content' => 'required|string',
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:500',
@@ -142,6 +172,8 @@ class NewsController extends Controller
             'status' => 'required|in:draft,published',
             'is_featured' => 'nullable|boolean',
         ], [
+            'category_id.required' => 'Category is required',
+            'category_id.exists' => 'Selected category is invalid',
             'title.required' => 'Title is required',
             'title.unique' => 'Title already exists',
             'title.max' => 'Title cannot exceed 255 characters',
@@ -157,6 +189,14 @@ class NewsController extends Controller
         ]);
 
         try {
+            // Check if selected category is active
+            $category = NewsCategory::findOrFail($request->category_id);
+            if (!$category->is_active) {
+                return redirect()->back()
+                               ->withInput()
+                               ->withErrors(['category_id' => 'Selected category is not active.']);
+            }
+
             // Generate slug if title changed
             $slug = GeneratorService::generateSlug(new News(), $request->title, $news->id);
 
@@ -195,6 +235,7 @@ class NewsController extends Controller
             }
             
             $news->update([
+                'category_id' => $request->category_id,
                 'title' => $request->title,
                 'slug' => $slug,
                 'content' => $request->content,

@@ -9,6 +9,12 @@
     .modal-blur {
         margin: 0 !important;
     }
+
+    .navbar-vertical.navbar-expand-lg .navbar-collapse .dropdown-menu .dropdown-item.active, .navbar-vertical.navbar-expand-lg .navbar-collapse .dropdown-menu .dropdown-item:active,
+    .dropdown-item:focus, .dropdown-item:hover {
+        color: var(--tblr-navbar-active-color) !important;
+        background-color: var(--tblr-dropdown-link-hover-bg) !important;
+    }
 </style>
 
 @stack('styles')

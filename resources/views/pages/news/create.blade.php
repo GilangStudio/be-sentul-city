@@ -2,7 +2,7 @@
 
 @section('title', 'Create News')
 
-@push('styles')
+{{-- @push('styles')
 <style>
     .form-control:focus {
         border-color: #0054a6;
@@ -29,7 +29,7 @@
         opacity: 0.6;
     }
 </style>
-@endpush
+@endpush --}}
 
 @section('header')
 <div class="d-flex justify-content-between align-items-center">
@@ -53,6 +53,28 @@
                 </div>
                 <div class="card-body">
                     <div class="row">
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label class="form-label">Category <span class="text-danger">*</span></label>
+                                <select class="form-select @error('category_id') is-invalid @enderror" name="category_id" required>
+                                    <option value="">Select Category</option>
+                                    @foreach($categories as $category)
+                                    <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
+                                        {{ $category->name }}
+                                    </option>
+                                    @endforeach
+                                </select>
+                                @error('category_id')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                                <small class="form-hint">
+                                    Choose the appropriate category for this news article.
+                                    @if($categories->isEmpty())
+                                    <a href="{{ route('news.categories.index') }}" class="text-primary">Create a category</a> first.
+                                    @endif
+                                </small>
+                            </div>
+                        </div>
                         <div class="col-12">
                             <div class="mb-3">
                                 <label class="form-label">Title <span class="text-danger">*</span></label>
@@ -192,6 +214,14 @@
 @endif
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Category data for info display
+        const categories = @json($categories->keyBy('id'));
+        
+        // Get form elements
+        const categorySelect = document.querySelector('select[name="category_id"]');
+        const categoryInfo = document.getElementById('category-info');
+        const categoryDetails = document.getElementById('category-details');
+        
         // Title character counter
         const titleInput = document.querySelector('input[name="title"]');
         const titleCount = document.getElementById('title-count');
@@ -209,6 +239,43 @@
                 titleCount.parentElement.classList.remove('text-warning', 'text-danger');
             }
         });
+
+        // Category selection handler
+        categorySelect.addEventListener('change', function() {
+            const categoryId = this.value;
+            
+            if (categoryId && categories[categoryId]) {
+                const category = categories[categoryId];
+                categoryDetails.innerHTML = `
+                    <div class="mb-2">
+                        <label class="form-label text-secondary">Name</label>
+                        <div class="fw-bold">${category.name}</div>
+                    </div>
+                    ${category.description ? `
+                    <div class="mb-2">
+                        <label class="form-label text-secondary">Description</label>
+                        <div class="text-secondary small">${category.description}</div>
+                    </div>
+                    ` : ''}
+                    <div class="mb-0">
+                        <label class="form-label text-secondary">Status</label>
+                        <div>
+                            <span class="badge bg-green-lt">
+                                <i class="ti ti-check me-1"></i>Active
+                            </span>
+                        </div>
+                    </div>
+                `;
+                categoryInfo.style.display = 'block';
+            } else {
+                categoryInfo.style.display = 'none';
+            }
+        });
+
+        // Trigger category change on page load if there's a selected value
+        if (categorySelect.value) {
+            categorySelect.dispatchEvent(new Event('change'));
+        }
 
         // Status change handler
         const statusSelect = document.getElementById('status-select');
@@ -313,6 +380,15 @@
         const submitBtn = document.getElementById('submit-btn');
         
         form.addEventListener('submit', function(e) {
+            // Validate category selection
+            if (!categorySelect.value) {
+                e.preventDefault();
+                categorySelect.classList.add('is-invalid');
+                categorySelect.focus();
+                showAlert(categorySelect, 'danger', 'Please select a category for this news article.');
+                return false;
+            }
+            
             // Validate content from editor
             const editorContent = hugeRTE.get('editor').getContent();
             const contentTextarea = document.querySelector('textarea[name="content"]');
@@ -344,6 +420,16 @@
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating...';
             form.classList.add('loading');
+        });
+
+        // Clear validation error when category is selected
+        categorySelect.addEventListener('change', function() {
+            if (this.value) {
+                this.classList.remove('is-invalid');
+                // Remove any alert messages
+                const alerts = document.querySelectorAll('.alert-custom');
+                alerts.forEach(alert => alert.remove());
+            }
         });
     });
 </script>

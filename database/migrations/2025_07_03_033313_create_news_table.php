@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('title');
             $table->string('slug')->unique();
+            $table->foreignId('category_id')->constrained('news_categories')->onDelete('cascade');
             $table->longText('content');
             $table->string('meta_title')->nullable();
             $table->text('meta_description')->nullable();

@@ -22,5 +22,9 @@ class DatabaseSeeder extends Seeder
             'password' => bcrypt('superadmin'),
             'role' => 'superadmin',
         ]);
+
+        $this->call([
+            NewsCategorySeeder::class,
+        ]);
     }
 }

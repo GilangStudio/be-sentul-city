@@ -85,16 +85,21 @@
 @section('header')
 <div class="d-flex justify-content-between align-items-center">
     <h2 class="page-title">News Management</h2>
-    <a href="{{ route('news.create') }}" class="btn btn-primary">
-        <i class="ti ti-plus me-1"></i> Add News
-    </a>
+    <div class="btn-list">
+        <a href="{{ route('news.categories.index') }}" class="btn btn-outline-primary">
+            <i class="ti ti-folder me-1"></i> Manage Categories
+        </a>
+        <a href="{{ route('news.create') }}" class="btn btn-primary">
+            <i class="ti ti-plus me-1"></i> Add News
+        </a>
+    </div>
 </div>
 @endsection
 
 @section('content')
 
 {{-- Search and Filter Form --}}
-<div class="col-12 mb-3">
+<div class="col-12">
     <form method="GET" action="{{ route('news.index') }}" id="filter-form">
         <div class="d-flex justify-content-between align-items-center gap-2">
             <div class="input-icon" style="max-width: 350px;">
@@ -110,13 +115,21 @@
                        id="search-input">
             </div>
             <div class="d-flex gap-2 align-items-center">
+                <select class="form-select" name="category" id="category-filter" style="min-width: 150px;">
+                    <option value="">All Categories</option>
+                    @foreach($categories as $category)
+                    <option value="{{ $category->id }}" {{ request('category') == $category->id ? 'selected' : '' }}>
+                        {{ $category->name }}
+                    </option>
+                    @endforeach
+                </select>
                 <select class="form-select" name="status" id="status-filter" style="min-width: 130px;">
                     <option value="">All Status</option>
                     <option value="published" {{ request('status') === 'published' ? 'selected' : '' }}>Published</option>
                     <option value="draft" {{ request('status') === 'draft' ? 'selected' : '' }}>Draft</option>
                 </select>
-                @if(request('search') || request('status'))
-                <a href="{{ route('news.index') }}" class="btn btn-outline-secondary" title="Clear all filters">
+                @if(request('search') || request('status') || request('category'))
+                <a href="{{ route('news.index') }}" class="btn btn-secondary btn-icon" data-bd-title="Clear all filters">
                     <i class="ti ti-x"></i>
                 </a>
                 @endif
@@ -124,13 +137,22 @@
         </div>
         
         {{-- Active Filters Display --}}
-        @if(request('search') || request('status'))
+        @if(request('search') || request('status') || request('category'))
         <div class="mt-2 d-flex gap-2 align-items-center flex-wrap">
             <small class="text-secondary">Active filters:</small>
             @if(request('search'))
             <span class="badge bg-blue-lt filter-badge">
                 <i class="ti ti-search me-1"></i>
                 Search: "{{ request('search') }}"
+            </span>
+            @endif
+            @if(request('category'))
+            @php
+                $selectedCategory = $categories->firstWhere('id', request('category'));
+            @endphp
+            <span class="badge bg-primary-lt filter-badge">
+                <i class="ti ti-folder me-1"></i>
+                Category: {{ $selectedCategory ? $selectedCategory->name : 'Unknown' }}
             </span>
             @endif
             @if(request('status'))
@@ -154,6 +176,7 @@
                         <tr>
                             <th width="80" class="text-center">Image</th>
                             <th>Title & Content</th>
+                            <th width="120">Category</th>
                             <th width="160">Published Date</th>
                             <th width="150" class="text-center">Status</th>
                             <th width="120" class="text-center">Actions</th>
@@ -197,6 +220,17 @@
                                 </div>
                             </td>
                             <td>
+                                @if($article->category)
+                                <span class="badge bg-primary-lt">
+                                    <i class="ti ti-folder me-1"></i>{{ $article->category->name }}
+                                </span>
+                                @else
+                                <span class="text-secondary">
+                                    <i class="ti ti-alert-circle me-1"></i>No Category
+                                </span>
+                                @endif
+                            </td>
+                            <td>
                                 @if($article->published_at)
                                     <div class="text-dark">{{ $article->published_at->format('d M Y') }}</div>
                                     <small class="text-secondary">{{ $article->published_at->format('H:i') }}</small>
@@ -220,7 +254,6 @@
                             <td class="text-center">
                                 <div class="btn-list">
                                     <a href="{{ route('news.edit', $article) }}" 
-                                       {{-- class="btn btn-sm btn-outline-primary"  --}}
                                        class="btn btn-primary-lt btn-icon" 
                                        title="Edit News">
                                         <i class="ti ti-edit"></i>
@@ -241,21 +274,21 @@
                             <td colspan="6" class="text-center py-5">
                                 <div class="empty">
                                     <div class="empty-icon">
-                                        @if(request('search') || request('status') || request('page'))
+                                        @if(request('search') || request('status') || request('category') || request('page'))
                                         <i class="ti ti-search icon icon-lg"></i>
                                         @else
                                         <i class="ti ti-news icon icon-lg"></i>
                                         @endif
                                     </div>
                                     <p class="empty-title h3">
-                                        @if(request('search') || request('status') || request('page'))
+                                        @if(request('search') || request('status') || request('category') || request('page'))
                                         No news found
                                         @else
                                         No news articles yet
                                         @endif
                                     </p>
                                     <p class="empty-subtitle text-secondary">
-                                        @if(request('search') || request('status') || request('page'))
+                                        @if(request('search') || request('status') || request('category') || request('page'))
                                         Try adjusting your search terms or clear the filters to see all news.
                                         @else
                                         Get started by creating your first news article.<br>
@@ -263,14 +296,20 @@
                                         @endif
                                     </p>
                                     <div class="empty-action">
-                                        @if(request('search') || request('status') || request('page'))
+                                        @if(request('search') || request('status') || request('category') || request('page'))
                                         <a href="{{ route('news.index') }}" class="btn btn-outline-secondary">
                                             <i class="ti ti-x me-1"></i> Clear Filters
                                         </a>
                                         @else
+                                        @if($categories->count() > 0)
                                         <a href="{{ route('news.create') }}" class="btn btn-primary">
                                             <i class="ti ti-plus me-1"></i> Create First News
                                         </a>
+                                        @else
+                                        <a href="{{ route('news.categories.create') }}" class="btn btn-primary">
+                                            <i class="ti ti-folder-plus me-1"></i> Create Category First
+                                        </a>
+                                        @endif
                                         @endif
                                     </div>
                                 </div>
@@ -283,7 +322,7 @@
         </div>
         
         {{-- Footer with Results Info and Pagination --}}
-        @if($news->total() > 0 || request('search') || request('status'))
+        @if($news->total() > 0 || request('search') || request('status') || request('category'))
         <div class="card-footer d-flex align-items-center">
             <div class="text-secondary">
                 @if($news->total() > 0)
@@ -294,7 +333,7 @@
                     @endif
                 @else
                     No results found
-                    @if(request('search') || request('status'))
+                    @if(request('search') || request('status') || request('category'))
                         with current filters
                     @endif
                 @endif
@@ -330,6 +369,7 @@
         const filterForm = document.getElementById('filter-form');
         const searchInput = document.getElementById('search-input');
         const statusFilter = document.getElementById('status-filter');
+        const categoryFilter = document.getElementById('category-filter');
         const tableContainer = document.getElementById('table-container');
         
         // Debounce function for search
@@ -345,6 +385,11 @@
         
         // Status filter change (immediate submit)
         statusFilter.addEventListener('change', function() {
+            submitFilter();
+        });
+
+        // Category filter change (immediate submit)
+        categoryFilter.addEventListener('change', function() {
             submitFilter();
         });
         

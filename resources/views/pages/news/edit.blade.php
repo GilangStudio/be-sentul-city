@@ -2,7 +2,7 @@
 
 @section('title', 'Edit News')
 
-@push('styles')
+{{-- @push('styles')
 <style>
     .image-preview-card {
         border: 2px dashed #ddd;
@@ -42,7 +42,7 @@
         opacity: 0.6;
     }
 </style>
-@endpush
+@endpush --}}
 
 @section('header')
 <div class="d-flex justify-content-between align-items-center">
@@ -50,9 +50,11 @@
         <h2 class="page-title">Edit News</h2>
         <div class="page-subtitle">{{ $news->title }}</div>
     </div>
-    <a href="{{ route('news.index') }}" class="btn btn-outline-secondary">
-        <i class="ti ti-arrow-left me-1"></i> Back to News
-    </a>
+    <div class="btn-list">
+        <a href="{{ route('news.index') }}" class="btn btn-outline-secondary">
+            <i class="ti ti-arrow-left me-1"></i> Back to News
+        </a>
+    </div>
 </div>
 @endsection
 
@@ -73,6 +75,25 @@
                 </div>
                 <div class="card-body">
                     <div class="row">
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label class="form-label">Category <span class="text-danger">*</span></label>
+                                <select class="form-select @error('category_id') is-invalid @enderror" name="category_id" required id="category-select">
+                                    <option value="">Select Category</option>
+                                    @foreach($categories as $category)
+                                    <option value="{{ $category->id }}" {{ old('category_id', $news->category_id) == $category->id ? 'selected' : '' }}>
+                                        {{ $category->name }}
+                                    </option>
+                                    @endforeach
+                                </select>
+                                @error('category_id')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                                <small class="form-hint">
+                                    Choose the appropriate category for this news article.
+                                </small>
+                            </div>
+                        </div>
                         <div class="col-12">
                             <div class="mb-3">
                                 <label class="form-label">Title <span class="text-danger">*</span></label>
@@ -170,6 +191,34 @@
                             <input type="text" class="form-control bg-light" value="{{ $news->slug }}" readonly>
                         </div>
                         <small class="form-hint">URL slug will be automatically generated from title.</small>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Category Info --}}
+            <div class="card mt-3" id="category-info">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="ti ti-folder me-2"></i>
+                        Category Info
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div id="category-details">
+                        @if($news->category)
+                        <div class="mb-2">
+                            <label class="form-label text-secondary">Current Category</label>
+                            <div class="fw-bold">{{ $news->category->name }}</div>
+                        </div>
+                        @if($news->category->description)
+                        <div class="mb-0">
+                            <label class="form-label text-secondary">Description</label>
+                            <div class="text-secondary small">{{ $news->category->description }}</div>
+                        </div>
+                        @endif
+                        @else
+                        <div class="text-secondary">No category selected</div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -305,6 +354,13 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Category data for info display
+        const categories = @json($categories->keyBy('id'));
+        
+        // Get form elements
+        const categorySelect = document.getElementById('category-select');
+        const categoryDetails = document.getElementById('category-details');
+        
         // Title character counter
         const titleInput = document.querySelector('input[name="title"]');
         const titleCount = document.getElementById('title-count');
@@ -320,6 +376,35 @@
                 titleCount.parentElement.classList.add('text-danger');
             } else {
                 titleCount.parentElement.classList.remove('text-warning', 'text-danger');
+            }
+        });
+
+        // Category selection handler
+        categorySelect.addEventListener('change', function() {
+            const categoryId = this.value;
+            
+            if (categoryId && categories[categoryId]) {
+                const category = categories[categoryId];
+                categoryDetails.innerHTML = `
+                    <div class="mb-2">
+                        <label class="form-label text-secondary">Selected Category</label>
+                        <div class="fw-bold">${category.name}</div>
+                    </div>
+                    ${category.description ? `
+                    <div class="mb-0">
+                        <label class="form-label text-secondary">Description</label>
+                        <div class="text-secondary small">${category.description}</div>
+                    </div>
+                    ` : ''}
+                `;
+                
+                // Clear validation error if any
+                categorySelect.classList.remove('is-invalid');
+                // Remove any alert messages
+                const alerts = document.querySelectorAll('.alert-custom');
+                alerts.forEach(alert => alert.remove());
+            } else {
+                categoryDetails.innerHTML = '<div class="text-secondary">No category selected</div>';
             }
         });
 
@@ -411,7 +496,6 @@
         function toggleFeaturedAvailability() {
             if (statusSelect.value === 'published') {
                 featuredCheckbox.disabled = false;
-
                 removeAlert();
             } else {
                 featuredCheckbox.disabled = true;
@@ -432,6 +516,15 @@
         const submitBtn = document.getElementById('submit-btn');
         
         form.addEventListener('submit', function(e) {
+            // Validate category selection
+            if (!categorySelect.value) {
+                e.preventDefault();
+                categorySelect.classList.add('is-invalid');
+                categorySelect.focus();
+                showAlert(categorySelect, 'danger', 'Please select a category for this news article.');
+                return false;
+            }
+            
             // Validate content from editor
             const editorContent = hugeRTE.get('editor').getContent();
             const contentTextarea = document.querySelector('textarea[name="content"]');

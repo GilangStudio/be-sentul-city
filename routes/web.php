@@ -3,8 +3,10 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\NewsController;
+use App\Http\Controllers\PromoController;
 use App\Http\Controllers\HomePageController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\NewsCategoryController;
 
 Route::middleware(['guest'])->group(function () {
     Route::get('/login', [AuthController::class, 'login'])->name('login');
@@ -31,6 +33,22 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/{news}/edit', [NewsController::class, 'edit'])->name('edit');
         Route::put('/{news}', [NewsController::class, 'update'])->name('update');
         Route::delete('/{news}', [NewsController::class, 'destroy'])->name('destroy');
+
+        Route::prefix('category')->name('categories.')->group(function () {
+            Route::get('/', [NewsCategoryController::class, 'index'])->name('index');
+            Route::post('/', [NewsCategoryController::class, 'store'])->name('store');
+            Route::put('/{category}', [NewsCategoryController::class, 'update'])->name('update');
+            Route::delete('/{category}', [NewsCategoryController::class, 'destroy'])->name('destroy');
+            Route::post('/update-order', [NewsCategoryController::class, 'updateOrder'])->name('update-order');
+        });
+    });
+
+    Route::prefix('promos')->name('promos.')->group(function () {
+        Route::get('/', [PromoController::class, 'index'])->name('index');
+        Route::post('/', [PromoController::class, 'store'])->name('store');
+        Route::put('/{promo}', [PromoController::class, 'update'])->name('update');
+        Route::delete('/{promo}', [PromoController::class, 'destroy'])->name('destroy');
+        Route::post('/update-order', [PromoController::class, 'updateOrder'])->name('update-order');
     });
 
     Route::prefix('settings')->name('settings.')->group(function () {
