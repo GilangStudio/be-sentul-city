@@ -146,6 +146,15 @@
                     </a>
                 </li> --}}
 
+                <li class="nav-item {{ Route::is('services.*') ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('services.index') }}">
+                        <span class="nav-link-icon d-md-none d-lg-inline-block">
+                            <i class="ti ti-tools fs-2"></i>
+                        </span>
+                        <span class="nav-link-title">Our Services</span>
+                    </a>
+                </li>
+
                 <li class="nav-item dropdown {{ Route::is('news.*') ? 'active' : '' }}">
                     <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" data-bs-auto-close="false"
                         role="button" aria-expanded="false">

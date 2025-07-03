@@ -34,7 +34,7 @@
     }
     
     .sortable-handle:hover {
-        color: #0054a6;
+        color: var(--bs-primary);
         background: rgba(255,255,255,1);
     }
     

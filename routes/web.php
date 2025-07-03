@@ -7,6 +7,7 @@ use App\Http\Controllers\PromoController;
 use App\Http\Controllers\HomePageController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\NewsCategoryController;
+use App\Http\Controllers\ServicesPageController;
 
 Route::middleware(['guest'])->group(function () {
     Route::get('/login', [AuthController::class, 'login'])->name('login');
@@ -49,6 +50,21 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/{promo}', [PromoController::class, 'update'])->name('update');
         Route::delete('/{promo}', [PromoController::class, 'destroy'])->name('destroy');
         Route::post('/update-order', [PromoController::class, 'updateOrder'])->name('update-order');
+    });
+
+    Route::prefix('services')->name('services.')->group(function () {
+        Route::get('/', [ServicesPageController::class, 'index'])->name('index');
+        Route::post('/', [ServicesPageController::class, 'updateOrCreate'])->name('updateOrCreate');
+        
+        // Service Sections Routes - Updated to use separate pages
+        Route::prefix('sections')->name('sections.')->group(function () {
+            Route::get('/create', [ServicesPageController::class, 'createSections'])->name('create');
+            Route::post('/', [ServicesPageController::class, 'storeSections'])->name('store');
+            Route::get('/{section}/edit', [ServicesPageController::class, 'editSections'])->name('edit');
+            Route::put('/{section}', [ServicesPageController::class, 'updateSections'])->name('update');
+            Route::delete('/{section}', [ServicesPageController::class, 'destroySections'])->name('destroy');
+            Route::post('/update-order', [ServicesPageController::class, 'updateSectionsOrder'])->name('update-order');
+        });
     });
 
     Route::prefix('settings')->name('settings.')->group(function () {
