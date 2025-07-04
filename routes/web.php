@@ -6,8 +6,12 @@ use App\Http\Controllers\NewsController;
 use App\Http\Controllers\PromoController;
 use App\Http\Controllers\HomePageController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\NewResidentsController;
 use App\Http\Controllers\NewsCategoryController;
 use App\Http\Controllers\ServicesPageController;
+use App\Http\Controllers\PracticalInfoPlaceController;
+use App\Http\Controllers\TransportationItemController;
+use App\Http\Controllers\PracticalInfoCategoryController;
 
 Route::middleware(['guest'])->group(function () {
     Route::get('/login', [AuthController::class, 'login'])->name('login');
@@ -25,6 +29,41 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/', [HomePageController::class, 'store'])->name('store');
         Route::put('/', [HomePageController::class, 'update'])->name('update');
         Route::delete('/', [HomePageController::class, 'destroy'])->name('destroy');
+    });
+
+    // New Residents Management Routes
+    Route::prefix('new-residents')->name('new-residents.')->group(function () {
+        Route::get('/', [NewResidentsController::class, 'index'])->name('index');
+        Route::post('/', [NewResidentsController::class, 'updateOrCreate'])->name('updateOrCreate');
+        Route::delete('/', [NewResidentsController::class, 'destroy'])->name('destroy');
+
+        // Practical Info Categories
+        Route::prefix('categories')->name('categories.')->group(function () {
+            Route::get('/', [PracticalInfoCategoryController::class, 'index'])->name('index');
+            Route::post('/', [PracticalInfoCategoryController::class, 'store'])->name('store');
+            Route::put('/{category}', [PracticalInfoCategoryController::class, 'update'])->name('update');
+            Route::delete('/{category}', [PracticalInfoCategoryController::class, 'destroy'])->name('destroy');
+            Route::post('/update-order', [PracticalInfoCategoryController::class, 'updateOrder'])->name('update-order');
+        });
+
+        // Practical Info Places - UPDATE: Gunakan parameter name yang konsisten
+        Route::prefix('places')->name('places.')->group(function () {
+            Route::get('/', [PracticalInfoPlaceController::class, 'index'])->name('index');
+            Route::get('/create', [PracticalInfoPlaceController::class, 'create'])->name('create');
+            Route::post('/', [PracticalInfoPlaceController::class, 'store'])->name('store');
+            Route::get('/{place}/edit', [PracticalInfoPlaceController::class, 'edit'])->name('edit');
+            Route::put('/{place}', [PracticalInfoPlaceController::class, 'update'])->name('update');
+            Route::delete('/{place}', [PracticalInfoPlaceController::class, 'destroy'])->name('destroy');
+        });
+
+        // Transportation Items
+        Route::prefix('transportation')->name('transportation.')->group(function () {
+            Route::get('/', [TransportationItemController::class, 'index'])->name('index');
+            Route::post('/', [TransportationItemController::class, 'store'])->name('store');
+            Route::put('/{transportationItem}', [TransportationItemController::class, 'update'])->name('update');
+            Route::delete('/{transportationItem}', [TransportationItemController::class, 'destroy'])->name('destroy');
+            Route::post('/update-order', [TransportationItemController::class, 'updateOrder'])->name('update-order');
+        });
     });
 
     Route::prefix('news')->name('news.')->group(function () {

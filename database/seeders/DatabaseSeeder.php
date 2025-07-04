@@ -25,6 +25,8 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             NewsCategorySeeder::class,
+            PracticalInfoCategorySeeder::class,
+            TransportationItemSeeder::class,
         ]);
     }
 }
