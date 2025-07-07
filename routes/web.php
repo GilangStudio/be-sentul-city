@@ -7,14 +7,17 @@ use App\Http\Controllers\PromoController;
 use App\Http\Controllers\AboutUsController;
 use App\Http\Controllers\HomePageController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\CareerPageController;
 use App\Http\Controllers\NewResidentsController;
 use App\Http\Controllers\NewsCategoryController;
 use App\Http\Controllers\ServicesPageController;
 use App\Http\Controllers\AboutServicesController;
 use App\Http\Controllers\AboutFunctionsController;
+use App\Http\Controllers\CareerPositionController;
 use App\Http\Controllers\ServiceSectionController;
 use App\Http\Controllers\PartnershipItemController;
 use App\Http\Controllers\PartnershipPageController;
+use App\Http\Controllers\CareerApplicationController;
 use App\Http\Controllers\PracticalInfoPlaceController;
 use App\Http\Controllers\TransportationItemController;
 use App\Http\Controllers\AboutExecutiveSummaryController;
@@ -162,6 +165,34 @@ Route::middleware(['auth'])->group(function () {
             Route::put('/{section}', [ServiceSectionController::class, 'update'])->name('update');
             Route::delete('/{section}', [ServiceSectionController::class, 'destroy'])->name('destroy');
             Route::post('/update-order', [ServiceSectionController::class, 'updateOrder'])->name('update-order');
+        });
+    });
+
+    Route::prefix('careers')->name('careers.')->group(function () {
+        // Career Page Settings
+        Route::get('/', [CareerPageController::class, 'index'])->name('index');
+        Route::post('/', [CareerPageController::class, 'updateOrCreate'])->name('updateOrCreate');
+        Route::delete('/', [CareerPageController::class, 'destroy'])->name('destroy');
+        
+        // Career Positions
+        Route::prefix('positions')->name('positions.')->group(function () {
+            Route::get('/', [CareerPositionController::class, 'index'])->name('index');
+            Route::get('/create', [CareerPositionController::class, 'create'])->name('create');
+            Route::post('/', [CareerPositionController::class, 'store'])->name('store');
+            Route::get('/{position}/edit', [CareerPositionController::class, 'edit'])->name('edit');
+            Route::put('/{position}', [CareerPositionController::class, 'update'])->name('update');
+            Route::delete('/{position}', [CareerPositionController::class, 'destroy'])->name('destroy');
+            Route::post('/update-order', [CareerPositionController::class, 'updateOrder'])->name('update-order');
+            
+            // Career Applications
+            Route::prefix('{position}/applications')->name('applications.')->group(function () {
+                Route::get('/', [CareerApplicationController::class, 'index'])->name('index');
+                Route::get('/{application}', [CareerApplicationController::class, 'show'])->name('show');
+                Route::patch('/{application}/status', [CareerApplicationController::class, 'updateStatus'])->name('update-status');
+                Route::delete('/{application}', [CareerApplicationController::class, 'destroy'])->name('destroy');
+                Route::get('/{application}/download-cv', [CareerApplicationController::class, 'downloadCv'])->name('download-cv');
+                Route::post('/bulk-update-status', [CareerApplicationController::class, 'bulkUpdateStatus'])->name('bulk-update-status');
+            });
         });
     });
 

@@ -131,7 +131,7 @@
 <div class="col-12">
     <div class="card border-warning">
         <div class="card-body text-center py-5">
-            <div class="empty-icon mb-3">
+            <div class="empty-icon w-100 mb-3">
                 <i class="ti ti-alert-triangle icon icon-lg text-warning"></i>
             </div>
             <h3 class="empty-title">Services Page Not Set Up</h3>
@@ -186,7 +186,7 @@
                         </div>
                         
                         {{-- Order Number --}}
-                        <div class="section-order">#{{ $section->order }}</div>
+                        <div class="section-order">{{ $section->order }}</div>
                         
                         {{-- Action Buttons --}}
                         <div class="section-actions">

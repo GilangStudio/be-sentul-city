@@ -178,6 +178,32 @@
                     </div>
                 </li>
 
+                <li class="nav-item dropdown {{ Route::is('careers.*') ? 'active' : '' }}">
+                    <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" data-bs-auto-close="false"
+                        role="button" aria-expanded="false">
+                        <span class="nav-link-icon d-md-none d-lg-inline-block">
+                            <i class="ti ti-briefcase fs-2"></i>
+                        </span>
+                        <span class="nav-link-title">Career</span>
+                    </a>
+                    <div class="dropdown-menu {{ Route::is('careers.*') ? 'show' : '' }}">
+                        <div class="dropdown-menu-columns">
+                            <div class="dropdown-menu-column">
+                                <a class="dropdown-item {{ Route::is('careers.index') ? 'active' : '' }}"
+                                    href="{{ route('careers.index') }}">
+                                    <i class="ti ti-settings me-2"></i>
+                                    Page Settings
+                                </a>
+                                <a class="dropdown-item {{ Route::is('careers.positions.*') ? 'active' : '' }}"
+                                    href="{{ route('careers.positions.index') }}">
+                                    <i class="ti ti-briefcase me-2"></i>
+                                    Job Positions
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+
                 <li class="nav-item {{ Route::is('promos.*') ? 'active' : '' }}">
                     <a class="nav-link" href="{{ route('promos.index') }}">
                         <span class="nav-link-icon d-md-none d-lg-inline-block">

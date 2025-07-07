@@ -1,24 +1,18 @@
 @extends('layouts.main')
 
-@section('title', 'Partnership Items')
+@section('title', 'Career Positions')
 
 @push('styles')
 <style>
-    .partnership-card {
+    .position-card {
         transition: all 0.3s ease;
         border-radius: 8px;
         overflow: hidden;
     }
     
-    .partnership-card:hover {
+    .position-card:hover {
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    
-    .partnership-image {
-        height: 200px;
-        object-fit: cover;
-        background-color: #f8f9fa;
     }
     
     .sortable-handle {
@@ -47,17 +41,17 @@
         transform: rotate(1deg);
     }
     
-    .partnership-status {
+    .position-status {
         position: absolute;
         top: 15px;
         right: 15px;
         z-index: 10;
     }
     
-    .partnership-order {
+    .position-order {
         position: absolute;
-        bottom: 15px;
-        left: 15px;
+        top: 15px;
+        left: 50px;
         background: rgba(0,0,0,0.8);
         color: white;
         padding: 4px 10px;
@@ -67,11 +61,16 @@
         z-index: 10;
     }
     
-    .partnership-actions {
+    .position-actions {
         position: absolute;
         bottom: 15px;
         right: 15px;
         z-index: 10;
+    }
+    
+    .position-card .card-body {
+        min-height: 200px;
+        position: relative;
     }
     
     .loading {
@@ -96,15 +95,15 @@
 @section('header')
 <div class="d-flex justify-content-between align-items-center">
     <div>
-        <h2 class="page-title">Partnership Items Management</h2>
-        <div class="page-subtitle">Manage partnership items that will be displayed on the partnerships page</div>
+        <h2 class="page-title">Career Positions Management</h2>
+        <div class="page-subtitle">Manage job positions and their applications</div>
     </div>
     <div class="btn-list">
-        <a href="{{ route('partnerships.index') }}" class="btn btn-outline-secondary">
+        <a href="{{ route('careers.index') }}" class="btn btn-outline-secondary">
             <i class="ti ti-arrow-left me-1"></i> Back to Page Settings
         </a>
-        <a href="{{ route('partnerships.items.create') }}" class="btn btn-primary">
-            <i class="ti ti-plus me-1"></i> Add Partnership Item
+        <a href="{{ route('careers.positions.create') }}" class="btn btn-primary">
+            <i class="ti ti-plus me-1"></i> Add Position
         </a>
     </div>
 </div>
@@ -114,7 +113,7 @@
 
 {{-- Search and Filter Form --}}
 <div class="col-12">
-    <form method="GET" action="{{ route('partnerships.items.index') }}" id="filter-form">
+    <form method="GET" action="{{ route('careers.positions.index') }}" id="filter-form">
         <div class="d-flex justify-content-between align-items-center gap-2">
             <div class="input-icon" style="max-width: 350px;">
                 <span class="input-icon-addon">
@@ -123,7 +122,7 @@
                 <input type="text" 
                        class="form-control" 
                        name="search" 
-                       placeholder="Search partnership title or description..." 
+                       placeholder="Search position title or location..." 
                        value="{{ request('search') }}" 
                        autocomplete="off" 
                        id="search-input">
@@ -134,8 +133,15 @@
                     <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active</option>
                     <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
                 </select>
-                @if(request('search') || request('status'))
-                <a href="{{ route('partnerships.items.index') }}" class="btn btn-outline-secondary" title="Clear all filters">
+                <select class="form-select" name="type" id="type-filter" style="min-width: 150px;">
+                    <option value="">All Types</option>
+                    <option value="full-time" {{ request('type') === 'full-time' ? 'selected' : '' }}>Full-Time</option>
+                    <option value="part-time" {{ request('type') === 'part-time' ? 'selected' : '' }}>Part-Time</option>
+                    <option value="contract" {{ request('type') === 'contract' ? 'selected' : '' }}>Contract</option>
+                    <option value="internship" {{ request('type') === 'internship' ? 'selected' : '' }}>Internship</option>
+                </select>
+                @if(request('search') || request('status') || request('type'))
+                <a href="{{ route('careers.positions.index') }}" class="btn btn-outline-secondary" title="Clear all filters">
                     <i class="ti ti-x"></i>
                 </a>
                 @endif
@@ -143,7 +149,7 @@
         </div>
         
         {{-- Active Filters Display --}}
-        @if(request('search') || request('status'))
+        @if(request('search') || request('status') || request('type'))
         <div class="mt-2 d-flex gap-2 align-items-center flex-wrap">
             <small class="text-secondary">Active filters:</small>
             @if(request('search'))
@@ -158,88 +164,136 @@
                 Status: {{ ucfirst(request('status')) }}
             </span>
             @endif
+            @if(request('type'))
+            <span class="badge bg-orange-lt filter-badge">
+                <i class="ti ti-briefcase me-1"></i>
+                Type: {{ ucfirst(str_replace('-', ' ', request('type'))) }}
+            </span>
+            @endif
         </div>
         @endif
     </form>
 </div>
 
-{{-- Partnership Items Grid --}}
+{{-- Career Positions Grid --}}
 <div class="col-12">
     <div class="card">
         <div class="card-header">
             <h3 class="card-title">
-                <i class="ti ti-users-group me-2"></i>
-                Partnership Items
+                <i class="ti ti-briefcase me-2"></i>
+                Career Positions
             </h3>
             <div class="card-actions">
                 <div class="btn-list">
                     <span class="badge bg-blue-lt">
-                        {{ $items->total() }} items
+                        {{ $positions->total() }} positions
                     </span>
                 </div>
             </div>
         </div>
         <div class="card-body p-0">
-            @if($items->count() > 0)
+            @if($positions->count() > 0)
             <div class="row g-3 p-3" id="sortable-container">
-                @foreach($items as $item)
-                <div class="col-md-6 col-lg-4" data-id="{{ $item->id }}">
-                    <div class="card partnership-card position-relative">
+                @foreach($positions as $position)
+                <div class="col-md-6 col-lg-4" data-id="{{ $position->id }}">
+                    <div class="card position-card h-100 position-relative">
                         {{-- Drag Handle --}}
-                        @if(!request('search') && !request('status'))
+                        @if(!request('search') && !request('status') && !request('type'))
                         <div class="sortable-handle" title="Drag to reorder">
                             <i class="ti ti-grip-vertical"></i>
                         </div>
                         @endif
                         
                         {{-- Status Badge --}}
-                        <div class="partnership-status">
-                            @if($item->is_active)
-                            <span class="badge bg-success text-white">Active</span>
-                            @else
-                            <span class="badge bg-secondary text-white">Inactive</span>
-                            @endif
+                        <div class="position-status">
+                            <span class="badge bg-{{ $position->status_color }} text-white">{{ $position->status_text }}</span>
                         </div>
                         
                         {{-- Order Number --}}
-                        <div class="partnership-order">{{ $item->order }}</div>
+                        <div class="position-order">#{{ $position->order }}</div>
                         
                         {{-- Action Buttons --}}
-                        <div class="partnership-actions">
-                            <div class="btn-list">
-                                <a href="{{ route('partnerships.items.edit', $item) }}" 
+                        <div class="position-actions">
+                            <div class="btn-list mt-auto">
+                                @if($position->applications_count > 0)
+                                <a href="{{ route('careers.positions.applications.index', $position) }}" 
+                                   class="btn btn-primary btn-icon" 
+                                   title="View Applications ({{ $position->applications_count }})">
+                                    <i class="ti ti-users"></i>
+                                </a>
+                                @endif
+                                <a href="{{ route('careers.positions.edit', $position) }}" 
                                    class="btn btn-primary-lt btn-icon" 
-                                   title="Edit Item">
+                                   title="Edit Position">
                                     <i class="ti ti-edit"></i>
                                 </a>
+                                @if($position->canDelete())
                                 <button type="button" 
                                         class="btn btn-danger btn-icon delete-btn"
-                                        data-id="{{ $item->id }}"
-                                        data-name="{{ $item->title }}"
-                                        data-url="{{ route('partnerships.items.destroy', $item) }}"
-                                        title="Delete Item">
+                                        data-id="{{ $position->id }}"
+                                        data-name="{{ $position->title }}"
+                                        data-url="{{ route('careers.positions.destroy', $position) }}"
+                                        title="Delete Position">
                                     <i class="ti ti-trash"></i>
                                 </button>
+                                @else
+                                <button type="button" 
+                                        class="btn btn-outline-secondary btn-icon" 
+                                        title="Cannot delete - has applications"
+                                        disabled>
+                                    <i class="ti ti-lock"></i>
+                                </button>
+                                @endif
                             </div>
                         </div>
                         
-                        {{-- Item Content --}}
-                        <img src="{{ $item->image_url }}" 
-                             class="partnership-image w-100" 
-                             alt="{{ $item->image_alt_text ?: $item->title }}">
-                        
-                        <div class="card-body">
-                            <h5 class="card-title" data-searchable="title">{{ $item->title }}</h5>
-                            <p class="card-text text-secondary" data-searchable="description">
-                                {{ Str::limit($item->description, 100) }}
-                            </p>
-                            <small class="text-secondary">
-                                <i class="ti ti-calendar me-1"></i>
-                                Created {{ $item->created_at->format('d M Y') }}
-                                @if($item->updated_at != $item->created_at)
-                                • Updated {{ $item->updated_at->format('d M Y') }}
+                        {{-- Position Content --}}
+                        <div class="card-body" style="padding-top: 4rem;">
+                            <div class="mb-3">
+                                <h4 class="card-title mb-2" data-searchable="title">{{ $position->title }}</h4>
+                                <div class="text-secondary small mb-2">
+                                    <i class="ti ti-map-pin me-1"></i>
+                                    <span data-searchable="location">{{ $position->location }}</span>
+                                    <span class="mx-2">•</span>
+                                    <span class="badge bg-{{ $position->type === 'full-time' ? 'primary' : ($position->type === 'part-time' ? 'info' : ($position->type === 'contract' ? 'warning' : 'success')) }}-lt">
+                                        {{ $position->type_text }}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <div class="text-secondary small" style="line-height: 1.4;">
+                                    {!! Str::limit(strip_tags($position->responsibilities), 120) !!}
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-end">
+                                <div class="text-secondary small">
+                                    <div class="mb-1">
+                                        <i class="ti ti-calendar me-1"></i>
+                                        Posted {{ $position->days_posted_text }}
+                                    </div>
+                                    @if($position->closing_date)
+                                    <div>
+                                        <i class="ti ti-calendar-x me-1"></i>
+                                        Closes {{ $position->closing_date->format('M j, Y') }}
+                                    </div>
+                                    @endif
+                                </div>
+                                @if($position->applications_count > 0)
+                                <div class="d-flex flex-column align-items-end gap-1">
+                                    <span class="badge bg-blue-lt">
+                                        {{ $position->applications_count }} 
+                                        {{ Str::plural('application', $position->applications_count) }}
+                                    </span>
+                                    @if($position->pending_applications_count > 0)
+                                    <span class="badge bg-warning-lt">
+                                        {{ $position->pending_applications_count }} pending
+                                    </span>
+                                    @endif
+                                </div>
                                 @endif
-                            </small>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -248,35 +302,35 @@
             @else
             <div class="empty py-5">
                 <div class="empty-icon">
-                    @if(request('search') || request('status'))
+                    @if(request('search') || request('status') || request('type'))
                     <i class="ti ti-search icon icon-lg"></i>
                     @else
-                    <i class="ti ti-users-group icon icon-lg"></i>
+                    <i class="ti ti-briefcase icon icon-lg"></i>
                     @endif
                 </div>
                 <p class="empty-title h3">
-                    @if(request('search') || request('status'))
-                    No partnership items found
+                    @if(request('search') || request('status') || request('type'))
+                    No career positions found
                     @else
-                    No partnership items yet
+                    No career positions yet
                     @endif
                 </p>
                 <p class="empty-subtitle text-secondary">
-                    @if(request('search') || request('status'))
-                    Try adjusting your search terms or clear the filters to see all items.
+                    @if(request('search') || request('status') || request('type'))
+                    Try adjusting your search terms or clear the filters to see all positions.
                     @else
-                    Create partnership items to showcase your collaboration programs.<br>
-                    Each item can have an image, title, and description.
+                    Create job positions to start recruiting talent.<br>
+                    Each position can have detailed responsibilities, requirements, and benefits.
                     @endif
                 </p>
                 <div class="empty-action">
-                    @if(request('search') || request('status'))
-                    <a href="{{ route('partnerships.items.index') }}" class="btn btn-outline-secondary">
+                    @if(request('search') || request('status') || request('type'))
+                    <a href="{{ route('careers.positions.index') }}" class="btn btn-outline-secondary">
                         <i class="ti ti-x me-1"></i> Clear Filters
                     </a>
                     @else
-                    <a href="{{ route('partnerships.items.create') }}" class="btn btn-primary">
-                        <i class="ti ti-plus me-1"></i> Create First Item
+                    <a href="{{ route('careers.positions.create') }}" class="btn btn-primary">
+                        <i class="ti ti-plus me-1"></i> Create First Position
                     </a>
                     @endif
                 </div>
@@ -285,24 +339,24 @@
         </div>
         
         {{-- Footer with Results Info and Pagination --}}
-        @if($items->total() > 0 || request('search') || request('status'))
+        @if($positions->total() > 0 || request('search') || request('status') || request('type'))
         <div class="card-footer d-flex align-items-center">
             <div class="text-secondary">
-                @if($items->total() > 0)
-                    Showing <strong>{{ $items->firstItem() }}</strong> to <strong>{{ $items->lastItem() }}</strong> 
-                    of <strong>{{ $items->total() }}</strong> results
+                @if($positions->total() > 0)
+                    Showing <strong>{{ $positions->firstItem() }}</strong> to <strong>{{ $positions->lastItem() }}</strong> 
+                    of <strong>{{ $positions->total() }}</strong> results
                     @if(request('search'))
                         for "<strong>{{ request('search') }}</strong>"
                     @endif
                 @else
                     No results found
-                    @if(request('search') || request('status'))
+                    @if(request('search') || request('status') || request('type'))
                         with current filters
                     @endif
                 @endif
             </div>
             
-            @include('components.pagination', ['paginator' => $items])
+            @include('components.pagination', ['paginator' => $positions])
         </div>
         @endif
     </div>
@@ -343,6 +397,7 @@
         const filterForm = document.getElementById('filter-form');
         const searchInput = document.getElementById('search-input');
         const statusFilter = document.getElementById('status-filter');
+        const typeFilter = document.getElementById('type-filter');
         
         let searchTimeout;
         
@@ -354,8 +409,12 @@
             }, 600);
         });
         
-        // Status filter change
+        // Filter change
         statusFilter.addEventListener('change', function() {
+            submitFilter();
+        });
+        
+        typeFilter.addEventListener('change', function() {
             submitFilter();
         });
         
@@ -411,7 +470,7 @@
     }
 
     function setupSortable() {
-        @if(!request('search') && !request('status') && $items->count() > 1)
+        @if(!request('search') && !request('status') && !request('type') && $positions->count() > 1)
         const sortableContainer = document.getElementById('sortable-container');
         if (sortableContainer) {
             new Sortable(sortableContainer, {
@@ -430,15 +489,15 @@
                         });
                     });
                     
-                    updateItemsOrder(orders);
+                    updatePositionsOrder(orders);
                 }
             });
         }
         @endif
     }
 
-    function updateItemsOrder(orders) {
-        fetch('{{ route('partnerships.items.update-order') }}', {
+    function updatePositionsOrder(orders) {
+        fetch('{{ route('careers.positions.update-order') }}', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -453,9 +512,9 @@
                 orders.forEach((item, index) => {
                     const row = document.querySelector(`[data-id="${item.id}"]`);
                     if (row) {
-                        const orderElement = row.querySelector('.partnership-order');
+                        const orderElement = row.querySelector('.position-order');
                         if (orderElement) {
-                            orderElement.textContent = `${item.order}`;
+                            orderElement.textContent = `#${item.order}`;
                         }
                     }
                 });
