@@ -42,7 +42,7 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                                 <small class="form-hint">
-                                    Choose the appropriate category for this place.
+                                    Choose the appropriate category for this place. <a href="{{ route('new-residents.categories.index') }}" class="text-primary">Create a category</a> if needed.
                                     @if($categories->isEmpty())
                                     <a href="{{ route('new-residents.categories.index') }}" class="text-primary">Create a category</a> first.
                                     @endif

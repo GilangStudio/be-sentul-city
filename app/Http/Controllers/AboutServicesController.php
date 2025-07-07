@@ -1,10 +1,10 @@
 <?php
-// app/Http/Controllers/AboutServicesController.php
 
 namespace App\Http\Controllers;
 
 use App\Models\AboutServiceItem;
 use Illuminate\Http\Request;
+use App\Services\ImageService;
 use App\Services\GeneratorService;
 
 class AboutServicesController extends Controller
@@ -37,22 +37,31 @@ class AboutServicesController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'icon_class' => 'required|string|max:100',
-            'icon_color' => 'required|string|in:primary,secondary,success,danger,warning,info,light,dark',
+            'icon' => 'required|image|mimes:jpg,jpeg,png,webp,svg|max:2048',
+            'icon_alt_text' => 'nullable|string|max:255',
         ], [
             'title.required' => 'Title is required',
-            'icon_class.required' => 'Icon class is required',
-            'icon_color.required' => 'Icon color is required',
+            'icon.required' => 'Icon is required',
+            'icon.image' => 'File must be an image',
+            'icon.max' => 'Icon size cannot exceed 2MB',
         ]);
 
         try {
+            // Upload icon
+            $iconPath = ImageService::uploadAndCompress(
+                $request->file('icon'),
+                'about-us/services',
+                85,
+                200
+            );
+
             $order = GeneratorService::generateOrder(new AboutServiceItem());
 
             AboutServiceItem::create([
                 'title' => $request->title,
                 'description' => $request->description,
-                'icon_class' => $request->icon_class,
-                'icon_color' => $request->icon_color,
+                'icon_path' => $iconPath,
+                'icon_alt_text' => $request->icon_alt_text,
                 'order' => $order,
                 'is_active' => $request->has('is_active'),
             ]);
@@ -71,18 +80,34 @@ class AboutServicesController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'icon_class' => 'required|string|max:100',
-            'icon_color' => 'required|string|in:primary,secondary,success,danger,warning,info,light,dark',
+            'icon' => 'nullable|image|mimes:jpg,jpeg,png,webp,svg|max:2048',
+            'icon_alt_text' => 'nullable|string|max:255',
+        ], [
+            'title.required' => 'Title is required',
+            'icon.image' => 'File must be an image',
+            'icon.max' => 'Icon size cannot exceed 2MB',
         ]);
 
         try {
-            $item->update([
+            $data = [
                 'title' => $request->title,
                 'description' => $request->description,
-                'icon_class' => $request->icon_class,
-                'icon_color' => $request->icon_color,
+                'icon_alt_text' => $request->icon_alt_text,
                 'is_active' => $request->has('is_active'),
-            ]);
+            ];
+
+            // Update icon if new file provided
+            if ($request->hasFile('icon')) {
+                $data['icon_path'] = ImageService::updateImage(
+                    $request->file('icon'),
+                    $item->icon_path,
+                    'about-us/services',
+                    85,
+                    200
+                );
+            }
+
+            $item->update($data);
 
             return redirect()->route('about-us.services.index')
                            ->with('success', 'Service item updated successfully');
@@ -96,6 +121,11 @@ class AboutServicesController extends Controller
     public function destroy(AboutServiceItem $item)
     {
         try {
+            // Delete icon if exists
+            if ($item->icon_path) {
+                ImageService::deleteFile($item->icon_path);
+            }
+
             $item->delete();
             GeneratorService::reorderAfterDelete(new AboutServiceItem());
 

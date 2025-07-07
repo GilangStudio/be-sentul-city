@@ -28,10 +28,10 @@
     .service-icon {
         width: 50px;
         height: 50px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        object-fit: contain;
         border-radius: 8px;
+        background: #f8f9fa;
+        padding: 8px;
     }
     
     .form-control:focus {
@@ -45,13 +45,31 @@
     }
     
     .icon-preview {
+        width: 40px;
+        height: 40px;
+        object-fit: contain;
+        border-radius: 8px;
+        background: #f8f9fa;
         padding: 8px;
-        border-radius: 6px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-width: 40px;
-        min-height: 40px;
+    }
+    
+    /* Search highlighting */
+    mark.search-highlight {
+        background-color: #fff3cd;
+        padding: 0.1rem 0.2rem;
+        border-radius: 0.25rem;
+        font-weight: 600;
+    }
+    
+    /* Loading state */
+    .loading-overlay {
+        opacity: 0.6;
+        pointer-events: none;
+    }
+    
+    /* Filter indicators */
+    .filter-badge {
+        font-size: 0.75rem;
     }
 </style>
 @endpush
@@ -60,7 +78,7 @@
 <div class="d-flex justify-content-between align-items-center">
     <div>
         <h2 class="page-title">Services Management</h2>
-        <div class="page-subtitle">Manage complete service items for About Us page</div>
+        <div class="page-subtitle">Manage service items for About Us page</div>
     </div>
     <div class="btn-list">
         <a href="{{ route('about-us.index') }}" class="btn btn-outline-secondary">
@@ -110,13 +128,13 @@
         <div class="mt-2 d-flex gap-2 align-items-center flex-wrap">
             <small class="text-secondary">Active filters:</small>
             @if(request('search'))
-            <span class="badge bg-blue-lt">
+            <span class="badge bg-blue-lt filter-badge">
                 <i class="ti ti-search me-1"></i>
                 Search: "{{ request('search') }}"
             </span>
             @endif
             @if(request('status'))
-            <span class="badge bg-green-lt">
+            <span class="badge bg-green-lt filter-badge">
                 <i class="ti ti-filter me-1"></i>
                 Status: {{ request('status') === 'active' ? 'Active' : 'Inactive' }}
             </span>
@@ -130,7 +148,7 @@
 <div class="col-12">
     <div class="card">
         <div class="card-body p-0">
-            <div class="table-responsive">
+            <div class="table-responsive" id="table-container">
                 <table class="table">
                     <thead>
                         <tr>
@@ -153,9 +171,7 @@
                                 </div>
                             </td>
                             <td class="text-center">
-                                <div class="service-icon bg-{{ $item->icon_color }}-lt">
-                                    <i class="{{ $item->icon_class }} icon text-{{ $item->icon_color }}"></i>
-                                </div>
+                                <img src="{{ $item->icon_url }}" class="service-icon" alt="{{ $item->title }}">
                             </td>
                             <td>
                                 <div>
@@ -187,8 +203,8 @@
                                             data-id="{{ $item->id }}"
                                             data-title="{{ $item->title }}"
                                             data-description="{{ $item->description }}"
-                                            data-icon-class="{{ $item->icon_class }}"
-                                            data-icon-color="{{ $item->icon_color }}"
+                                            data-icon-url="{{ $item->icon_url }}"
+                                            data-icon-alt="{{ $item->icon_alt_text }}"
                                             data-is-active="{{ $item->is_active ? '1' : '0' }}"
                                             title="Edit Service">
                                         <i class="ti ti-edit"></i>
@@ -227,7 +243,7 @@
                                         Try adjusting your search terms or clear the filters to see all services.
                                         @else
                                         Get started by creating your first service item.<br>
-                                        These items highlight the complete services offered by Sentul City.
+                                        These items highlight the services offered by Sentul City.
                                         @endif
                                     </p>
                                     <div class="empty-action">
@@ -277,7 +293,7 @@
 {{-- Create Service Modal --}}
 <div class="modal modal-blur fade" id="create-service-modal" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
-        <form class="modal-content" method="POST" action="{{ route('about-us.services.store') }}">
+        <form class="modal-content" method="POST" action="{{ route('about-us.services.store') }}" enctype="multipart/form-data">
             @csrf
             <div class="modal-header">
                 <h5 class="modal-title">
@@ -297,33 +313,22 @@
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Description</label>
-                    <textarea class="form-control" name="description" rows="3"
+                    <textarea class="form-control" name="description" rows="4"
                               placeholder="Enter service description (optional)..." id="create-description-input"></textarea>
                     <small class="form-hint">
                         Describe what this service provides.
                     </small>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Icon Class <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" name="icon_class" required
-                           placeholder="ti ti-home" id="create-icon-input">
-                    <small class="form-hint">
-                        Use Tabler Icons class. Examples: ti ti-home, ti ti-phone, ti ti-shield, ti ti-building
-                        <a href="https://tabler.io/icons" target="_blank" class="text-primary">Browse icons</a>
-                    </small>
-                    <div class="mt-2" id="create-icon-preview"></div>
+                    <label class="form-label">Service Icon <span class="text-danger">*</span></label>
+                    <input type="file" class="form-control" name="icon" accept="image/*" required id="create-icon-input">
+                    <small class="form-hint">Upload an icon image. Max: 2MB (JPG, PNG, WebP, SVG)</small>
+                    <div class="mt-3" id="create-icon-preview"></div>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Icon Color <span class="text-danger">*</span></label>
-                    <select class="form-select" name="icon_color" required id="create-color-select">
-                        <option value="primary" selected>Primary (Blue)</option>
-                        <option value="secondary">Secondary (Gray)</option>
-                        <option value="success">Success (Green)</option>
-                        <option value="danger">Danger (Red)</option>
-                        <option value="warning">Warning (Yellow)</option>
-                        <option value="info">Info (Cyan)</option>
-                        <option value="dark">Dark (Black)</option>
-                    </select>
+                    <label class="form-label">Icon Alt Text</label>
+                    <input type="text" class="form-control" name="icon_alt_text"
+                           placeholder="Enter icon description for accessibility">
                 </div>
                 <div class="mb-3">
                     <label class="form-check form-switch">
@@ -349,7 +354,7 @@
 {{-- Edit Service Modal --}}
 <div class="modal modal-blur fade" id="edit-service-modal" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
-        <form class="modal-content" method="POST" id="edit-form">
+        <form class="modal-content" method="POST" enctype="multipart/form-data" id="edit-form">
             @csrf
             @method('PUT')
             <div class="modal-header">
@@ -360,6 +365,12 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
+                <div class="mb-3" id="edit-current-icon">
+                    <label class="form-label">Current Icon</label>
+                    <div>
+                        <img id="edit-icon-preview-current" src="" class="icon-preview" alt="">
+                    </div>
+                </div>
                 <div class="mb-3">
                     <label class="form-label">Title <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" name="title" required id="edit-title-input">
@@ -369,28 +380,17 @@
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Description</label>
-                    <textarea class="form-control" name="description" rows="3" id="edit-description-input"></textarea>
+                    <textarea class="form-control" name="description" rows="4" id="edit-description-input"></textarea>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Icon Class <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" name="icon_class" required id="edit-icon-input">
-                    <small class="form-hint">
-                        Use Tabler Icons class. 
-                        <a href="https://tabler.io/icons" target="_blank" class="text-primary">Browse icons</a>
-                    </small>
-                    <div class="mt-2" id="edit-icon-preview"></div>
+                    <label class="form-label">Update Icon (Optional)</label>
+                    <input type="file" class="form-control" name="icon" accept="image/*" id="edit-icon-input">
+                    <small class="form-hint">Leave empty to keep current icon. Max: 2MB</small>
+                    <div class="mt-3" id="edit-icon-preview"></div>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Icon Color <span class="text-danger">*</span></label>
-                    <select class="form-select" name="icon_color" required id="edit-color-select">
-                        <option value="primary">Primary (Blue)</option>
-                        <option value="secondary">Secondary (Gray)</option>
-                        <option value="success">Success (Green)</option>
-                        <option value="danger">Danger (Red)</option>
-                        <option value="warning">Warning (Yellow)</option>
-                        <option value="info">Info (Cyan)</option>
-                        <option value="dark">Dark (Black)</option>
-                    </select>
+                    <label class="form-label">Icon Alt Text</label>
+                    <input type="text" class="form-control" name="icon_alt_text" id="edit-icon-alt-input">
                 </div>
                 <div class="mb-3">
                     <label class="form-check form-switch">
@@ -435,32 +435,110 @@
         setupSortable();
         setupModals();
         setupCharacterCounters();
-        setupIconPreviews();
+        setupImagePreviews();
+        
+        // Highlight search terms in results
+        const searchTerm = '{{ request('search') }}';
+        if (searchTerm) {
+            highlightSearchResults(searchTerm.toLowerCase());
+        }
     });
 
     function setupSearch() {
         const filterForm = document.getElementById('filter-form');
         const searchInput = document.getElementById('search-input');
         const statusFilter = document.getElementById('status-filter');
+        const tableContainer = document.getElementById('table-container');
         
         let searchTimeout;
         
+        // Search input with debounce (auto-submit after 600ms)
         searchInput.addEventListener('input', function() {
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => {
-                filterForm.submit();
+                submitFilter();
             }, 600);
         });
         
+        // Status filter change (immediate submit)
         statusFilter.addEventListener('change', function() {
-            filterForm.submit();
+            submitFilter();
         });
         
+        // Handle Enter key in search input
         searchInput.addEventListener('keydown', function(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
                 clearTimeout(searchTimeout);
-                filterForm.submit();
+                submitFilter();
+            }
+        });
+        
+        // Submit filter function with loading state
+        function submitFilter() {
+            // Store current cursor position and search value
+            const cursorPosition = searchInput.selectionStart;
+            const searchValue = searchInput.value;
+            
+            // Store in sessionStorage for after page reload
+            sessionStorage.setItem('searchInputFocus', 'true');
+            sessionStorage.setItem('searchCursorPosition', cursorPosition);
+            sessionStorage.setItem('searchValue', searchValue);
+            
+            // Show loading state
+            showLoadingState();
+            
+            // Submit form
+            filterForm.submit();
+        }
+        
+        // Restore focus and cursor position after page load
+        function restoreSearchFocus() {
+            const shouldFocus = sessionStorage.getItem('searchInputFocus');
+            const cursorPosition = sessionStorage.getItem('searchCursorPosition');
+            const searchValue = sessionStorage.getItem('searchValue');
+            
+            if (shouldFocus === 'true' && searchInput.value === searchValue) {
+                // Focus input
+                searchInput.focus();
+                
+                // Restore cursor position
+                if (cursorPosition !== null) {
+                    searchInput.setSelectionRange(parseInt(cursorPosition), parseInt(cursorPosition));
+                }
+                
+                // Clear stored values
+                sessionStorage.removeItem('searchInputFocus');
+                sessionStorage.removeItem('searchCursorPosition');
+                sessionStorage.removeItem('searchValue');
+            }
+        }
+        
+        // Restore focus on page load
+        restoreSearchFocus();
+        
+        // Show loading state
+        function showLoadingState() {
+            tableContainer.classList.add('loading-overlay');
+            
+            // Add loading spinner to search input
+            const searchIcon = searchInput.parentElement.querySelector('i');
+            const originalClass = searchIcon.className;
+            searchIcon.className = 'ti ti-loader-2 animate-spin';
+            
+            // Reset after a delay (in case form submission fails)
+            setTimeout(() => {
+                tableContainer.classList.remove('loading-overlay');
+                searchIcon.className = originalClass;
+            }, 5000);
+        }
+        
+        // Focus search input on Ctrl+K or Cmd+K
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                searchInput.focus();
+                searchInput.select();
             }
         });
     }
@@ -535,13 +613,12 @@
                 document.getElementById('edit-form').action = `{{ url('about-us/services') }}/${itemId}`;
                 document.getElementById('edit-title-input').value = button.getAttribute('data-title');
                 document.getElementById('edit-description-input').value = button.getAttribute('data-description');
-                document.getElementById('edit-icon-input').value = button.getAttribute('data-icon-class');
-                document.getElementById('edit-color-select').value = button.getAttribute('data-icon-color');
+                document.getElementById('edit-icon-alt-input').value = button.getAttribute('data-icon-alt');
                 document.getElementById('edit-is-active').checked = button.getAttribute('data-is-active') === '1';
+                document.getElementById('edit-icon-preview-current').src = button.getAttribute('data-icon-url');
                 
-                // Update character counters and icon preview
+                // Update character counters
                 updateCharacterCounter('edit-title-input', 'edit-title-count');
-                updateIconPreview('edit-icon-input', 'edit-icon-preview', 'edit-color-select');
                 
                 const modal = new bootstrap.Modal(document.getElementById('edit-service-modal'));
                 modal.show();
@@ -555,26 +632,40 @@
         const editSubmitBtn = document.getElementById('edit-submit-btn');
 
         createForm.addEventListener('submit', function(e) {
+            const iconInput = document.getElementById('create-icon-input');
+            if (!iconInput.files.length) {
+                e.preventDefault();
+                showAlert(iconInput, 'danger', 'Please select an icon for the service.');
+                return false;
+            }
+
             createSubmitBtn.disabled = true;
             createSubmitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating...';
+            createForm.classList.add('loading');
         });
 
         editForm.addEventListener('submit', function(e) {
             editSubmitBtn.disabled = true;
             editSubmitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Updating...';
+            editForm.classList.add('loading');
         });
 
         // Reset modals when closed
         document.getElementById('create-service-modal').addEventListener('hidden.bs.modal', function() {
             createForm.reset();
+            createForm.classList.remove('loading');
             createSubmitBtn.disabled = false;
             createSubmitBtn.innerHTML = '<i class="ti ti-device-floppy me-1"></i>Create Service';
             document.getElementById('create-icon-preview').innerHTML = '';
             document.getElementById('create-title-count').textContent = '0';
+            // Remove validation classes
+            const alerts = document.querySelectorAll('.alert-custom');
+            alerts.forEach(alert => alert.remove());
         });
 
         document.getElementById('edit-service-modal').addEventListener('hidden.bs.modal', function() {
             editForm.reset();
+            editForm.classList.remove('loading');
             editSubmitBtn.disabled = false;
             editSubmitBtn.innerHTML = '<i class="ti ti-device-floppy me-1"></i>Update Service';
             document.getElementById('edit-icon-preview').innerHTML = '';
@@ -620,62 +711,102 @@
         }
     }
 
-    function setupIconPreviews() {
-        // Create service icon preview
+    function setupImagePreviews() {
         const createIconInput = document.getElementById('create-icon-input');
-        const createColorSelect = document.getElementById('create-color-select');
+        const editIconInput = document.getElementById('edit-icon-input');
         
         if (createIconInput) {
-            createIconInput.addEventListener('input', function() {
-                updateIconPreview('create-icon-input', 'create-icon-preview', 'create-color-select');
+            createIconInput.addEventListener('change', function(e) {
+                handleImagePreview(e, 'create-icon-preview', createIconInput, 2);
             });
         }
-        
-        if (createColorSelect) {
-            createColorSelect.addEventListener('change', function() {
-                updateIconPreview('create-icon-input', 'create-icon-preview', 'create-color-select');
-            });
-        }
-
-        // Edit service icon preview
-        const editIconInput = document.getElementById('edit-icon-input');
-        const editColorSelect = document.getElementById('edit-color-select');
         
         if (editIconInput) {
-            editIconInput.addEventListener('input', function() {
-                updateIconPreview('edit-icon-input', 'edit-icon-preview', 'edit-color-select');
-            });
-        }
-        
-        if (editColorSelect) {
-            editColorSelect.addEventListener('change', function() {
-                updateIconPreview('edit-icon-input', 'edit-icon-preview', 'edit-color-select');
+            editIconInput.addEventListener('change', function(e) {
+                handleImagePreview(e, 'edit-icon-preview', editIconInput, 2);
             });
         }
     }
 
-    function updateIconPreview(inputId, previewId, colorSelectId) {
-        const iconInput = document.getElementById(inputId);
-        const preview = document.getElementById(previewId);
-        const colorSelect = document.getElementById(colorSelectId);
+    function handleImagePreview(event, previewId, inputElement, maxSizeMB) {
+        const file = event.target.files[0];
+        const previewContainer = document.getElementById(previewId);
         
-        if (iconInput && preview && colorSelect) {
-            const iconClass = iconInput.value.trim();
-            const iconColor = colorSelect.value;
-            
-            if (iconClass) {
-                preview.innerHTML = `
-                    <div class="d-flex align-items-center">
-                        <div class="icon-preview bg-${iconColor}-lt me-2">
-                            <i class="${iconClass} icon text-${iconColor}"></i>
+        if (file) {
+            const maxSize = maxSizeMB * 1024 * 1024;
+            if (file.size > maxSize) {
+                showAlert(inputElement, 'danger', `File size too large. Maximum ${maxSizeMB}MB allowed.`);
+                inputElement.value = '';
+                return;
+            }
+
+            if (!file.type.startsWith('image/')) {
+                showAlert(inputElement, 'danger', 'Please select a valid image file.');
+                inputElement.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewContainer.innerHTML = `
+                    <div class="d-flex align-items-start gap-3">
+                        <img src="${e.target.result}" class="icon-preview" alt="Preview">
+                        <div class="flex-fill">
+                            <h6 class="mb-1">${file.name}</h6>
+                            <small class="text-secondary d-block">
+                                ${(file.size / 1024 / 1024).toFixed(2)} MB
+                            </small>
+                            <small class="text-success">
+                                <i class="ti ti-check me-1"></i>Ready to upload
+                            </small>
                         </div>
-                        <small class="text-secondary">Preview</small>
+                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="clearImagePreview('${previewId}', '${inputElement.id}')">
+                            <i class="ti ti-x"></i>
+                        </button>
                     </div>
                 `;
-            } else {
-                preview.innerHTML = '';
-            }
+            };
+            reader.readAsDataURL(file);
+        } else {
+            previewContainer.innerHTML = '';
         }
     }
+
+    function highlightSearchResults(term) {
+        const searchableElements = document.querySelectorAll('[data-searchable]');
+        
+        searchableElements.forEach(element => {
+            const text = element.textContent;
+            const lowerText = text.toLowerCase();
+            
+            if (lowerText.includes(term)) {
+                const regex = new RegExp(`(${escapeRegExp(term)})`, 'gi');
+                element.innerHTML = text.replace(regex, '<mark class="search-highlight">$1</mark>');
+            }
+        });
+    }
+
+    function escapeRegExp(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    // Clear image preview function
+    window.clearImagePreview = function(previewId, inputId) {
+        document.getElementById(inputId).value = '';
+        document.getElementById(previewId).innerHTML = '';
+    };
+
+    // Add loading animation CSS
+    const style = document.createElement('style');
+    style.textContent = `
+        .animate-spin {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    `;
+    document.head.appendChild(style);
 </script>
 @endpush

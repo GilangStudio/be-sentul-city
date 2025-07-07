@@ -12,6 +12,12 @@ class AboutServiceItem extends Model
         'is_active' => 'boolean',
     ];
 
+    // Accessor for icon URL
+    public function getIconUrlAttribute()
+    {
+        return $this->icon_path ? asset('storage/' . $this->icon_path) : null;
+    }
+
     public function scopeActive($query)
     {
         return $query->where('is_active', true);

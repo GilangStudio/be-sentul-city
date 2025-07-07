@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('title');
             $table->text('description')->nullable();
-            $table->string('icon_class')->nullable(); // For Tabler icons
-            $table->string('icon_color')->default('primary');
+            $table->string('icon_path');
+            $table->string('icon_alt_text')->nullable();
             $table->integer('order')->default(1);
             $table->boolean('is_active')->default(true);
             $table->timestamps();
