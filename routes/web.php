@@ -13,6 +13,8 @@ use App\Http\Controllers\ServicesPageController;
 use App\Http\Controllers\AboutServicesController;
 use App\Http\Controllers\AboutFunctionsController;
 use App\Http\Controllers\ServiceSectionController;
+use App\Http\Controllers\PartnershipItemController;
+use App\Http\Controllers\PartnershipPageController;
 use App\Http\Controllers\PracticalInfoPlaceController;
 use App\Http\Controllers\TransportationItemController;
 use App\Http\Controllers\AboutExecutiveSummaryController;
@@ -118,6 +120,24 @@ Route::middleware(['auth'])->group(function () {
             Route::put('/{category}', [NewsCategoryController::class, 'update'])->name('update');
             Route::delete('/{category}', [NewsCategoryController::class, 'destroy'])->name('destroy');
             Route::post('/update-order', [NewsCategoryController::class, 'updateOrder'])->name('update-order');
+        });
+    });
+
+    Route::prefix('partnerships')->name('partnerships.')->group(function () {
+        // Partnership Page Settings
+        Route::get('/', [PartnershipPageController::class, 'index'])->name('index');
+        Route::post('/', [PartnershipPageController::class, 'updateOrCreate'])->name('updateOrCreate');
+        Route::delete('/', [PartnershipPageController::class, 'destroy'])->name('destroy');
+        
+        // Partnership Items
+        Route::prefix('items')->name('items.')->group(function () {
+            Route::get('/', [PartnershipItemController::class, 'index'])->name('index');
+            Route::get('/create', [PartnershipItemController::class, 'create'])->name('create');
+            Route::post('/', [PartnershipItemController::class, 'store'])->name('store');
+            Route::get('/{item}/edit', [PartnershipItemController::class, 'edit'])->name('edit');
+            Route::put('/{item}', [PartnershipItemController::class, 'update'])->name('update');
+            Route::delete('/{item}', [PartnershipItemController::class, 'destroy'])->name('destroy');
+            Route::post('/update-order', [PartnershipItemController::class, 'updateOrder'])->name('update-order');
         });
     });
 

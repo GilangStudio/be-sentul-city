@@ -87,7 +87,7 @@
                                 <a class="dropdown-item {{ Route::is('new-residents.categories.*') ? 'active' : '' }}"
                                     href="{{ route('new-residents.categories.index') }}">
                                     <i class="ti ti-folder me-2"></i>
-                                    Practical Info Categories
+                                    Categories
                                 </a>
                                 <a class="dropdown-item {{ Route::is('new-residents.places.*') ? 'active' : '' }}"
                                     href="{{ route('new-residents.places.index') }}">
@@ -146,6 +146,32 @@
                                 <a class="dropdown-item {{ Route::is('news.*') && !Route::is('news.categories.*') ? 'active' : '' }}"
                                     href="{{ route('news.index') }}">
                                     All News
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+
+                <li class="nav-item dropdown {{ Route::is('partnerships.*') ? 'active' : '' }}">
+                    <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" data-bs-auto-close="false"
+                        role="button" aria-expanded="false">
+                        <span class="nav-link-icon d-md-none d-lg-inline-block">
+                            <i class="ti ti-users-group fs-2"></i>
+                        </span>
+                        <span class="nav-link-title">Partnership & Programs</span>
+                    </a>
+                    <div class="dropdown-menu {{ Route::is('partnerships.*') ? 'show' : '' }}">
+                        <div class="dropdown-menu-columns">
+                            <div class="dropdown-menu-column">
+                                <a class="dropdown-item {{ Route::is('partnerships.index') ? 'active' : '' }}"
+                                    href="{{ route('partnerships.index') }}">
+                                    <i class="ti ti-settings me-2"></i>
+                                    Page Settings
+                                </a>
+                                <a class="dropdown-item {{ Route::is('partnerships.items.*') ? 'active' : '' }}"
+                                    href="{{ route('partnerships.items.index') }}">
+                                    <i class="ti ti-users-group me-2"></i>
+                                    Partnership Items
                                 </a>
                             </div>
                         </div>
