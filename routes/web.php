@@ -4,13 +4,17 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\PromoController;
+use App\Http\Controllers\AboutUsController;
 use App\Http\Controllers\HomePageController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\NewResidentsController;
 use App\Http\Controllers\NewsCategoryController;
 use App\Http\Controllers\ServicesPageController;
+use App\Http\Controllers\AboutServicesController;
+use App\Http\Controllers\AboutFunctionsController;
 use App\Http\Controllers\PracticalInfoPlaceController;
 use App\Http\Controllers\TransportationItemController;
+use App\Http\Controllers\AboutExecutiveSummaryController;
 use App\Http\Controllers\PracticalInfoCategoryController;
 
 Route::middleware(['guest'])->group(function () {
@@ -29,6 +33,39 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/', [HomePageController::class, 'store'])->name('store');
         Route::put('/', [HomePageController::class, 'update'])->name('update');
         Route::delete('/', [HomePageController::class, 'destroy'])->name('destroy');
+    });
+
+    // About Us Management Routes
+    Route::prefix('about-us')->name('about-us.')->group(function () {
+        Route::get('/', [AboutUsController::class, 'index'])->name('index');
+        Route::post('/', [AboutUsController::class, 'updateOrCreate'])->name('updateOrCreate');
+        
+        // Executive Summary Items
+        Route::prefix('executive-summary')->name('executive-summary.')->group(function () {
+            Route::get('/', [AboutExecutiveSummaryController::class, 'index'])->name('index');
+            Route::post('/', [AboutExecutiveSummaryController::class, 'store'])->name('store');
+            Route::put('/{item}', [AboutExecutiveSummaryController::class, 'update'])->name('update');
+            Route::delete('/{item}', [AboutExecutiveSummaryController::class, 'destroy'])->name('destroy');
+            Route::post('/update-order', [AboutExecutiveSummaryController::class, 'updateOrder'])->name('update-order');
+        });
+        
+        // Function Items
+        Route::prefix('functions')->name('functions.')->group(function () {
+            Route::get('/', [AboutFunctionsController::class, 'index'])->name('index');
+            Route::post('/', [AboutFunctionsController::class, 'store'])->name('store');
+            Route::put('/{item}', [AboutFunctionsController::class, 'update'])->name('update');
+            Route::delete('/{item}', [AboutFunctionsController::class, 'destroy'])->name('destroy');
+            Route::post('/update-order', [AboutFunctionsController::class, 'updateOrder'])->name('update-order');
+        });
+        
+        // Service Items
+        Route::prefix('services')->name('services.')->group(function () {
+            Route::get('/', [AboutServicesController::class, 'index'])->name('index');
+            Route::post('/', [AboutServicesController::class, 'store'])->name('store');
+            Route::put('/{item}', [AboutServicesController::class, 'update'])->name('update');
+            Route::delete('/{item}', [AboutServicesController::class, 'destroy'])->name('destroy');
+            Route::post('/update-order', [AboutServicesController::class, 'updateOrder'])->name('update-order');
+        });
     });
 
     // New Residents Management Routes

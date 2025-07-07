@@ -146,6 +146,44 @@
                     </a>
                 </li> --}}
 
+                {{-- Update resources/views/partials/sidebar.blade.php - ganti bagian About Us dengan dropdown ini: --}}
+
+                <li class="nav-item dropdown {{ Route::is('about-us.*') ? 'active' : '' }}">
+                    <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" data-bs-auto-close="false"
+                        role="button" aria-expanded="false">
+                        <span class="nav-link-icon d-md-none d-lg-inline-block">
+                            <i class="ti ti-building-bank fs-2"></i>
+                        </span>
+                        <span class="nav-link-title">About Us</span>
+                    </a>
+                    <div class="dropdown-menu {{ Route::is('about-us.*') ? 'show' : '' }}">
+                        <div class="dropdown-menu-columns">
+                            <div class="dropdown-menu-column">
+                                <a class="dropdown-item {{ Route::is('about-us.index') ? 'active' : '' }}"
+                                    href="{{ route('about-us.index') }}">
+                                    <i class="ti ti-settings me-2"></i>
+                                    Page Settings
+                                </a>
+                                <a class="dropdown-item {{ Route::is('about-us.executive-summary.*') ? 'active' : '' }}"
+                                    href="{{ route('about-us.executive-summary.index') }}">
+                                    <i class="ti ti-chart-line me-2"></i>
+                                    Executive Summary
+                                </a>
+                                <a class="dropdown-item {{ Route::is('about-us.functions.*') ? 'active' : '' }}"
+                                    href="{{ route('about-us.functions.index') }}">
+                                    <i class="ti ti-tools me-2"></i>
+                                    Functions
+                                </a>
+                                <a class="dropdown-item {{ Route::is('about-us.services.*') ? 'active' : '' }}"
+                                    href="{{ route('about-us.services.index') }}">
+                                    <i class="ti ti-heart-handshake me-2"></i>
+                                    Services
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+
                 <li class="nav-item {{ Route::is('new-residents.*') ? 'active' : '' }}">
                     <a class="nav-link" href="{{ route('new-residents.index') }}">
                         <span class="nav-link-icon d-md-none d-lg-inline-block">
