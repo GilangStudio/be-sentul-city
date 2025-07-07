@@ -101,7 +101,7 @@
 {{-- Search and Filter Form --}}
 <div class="col-12">
     <form method="GET" action="{{ route('news.index') }}" id="filter-form">
-        <div class="d-flex justify-content-between align-items-center gap-2">
+        <div class="d-flex justify-content-start align-items-center gap-2">
             <div class="input-icon" style="max-width: 350px;">
                 <span class="input-icon-addon">
                     <i class="ti ti-search"></i>

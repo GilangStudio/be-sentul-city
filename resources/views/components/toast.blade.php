@@ -10,12 +10,12 @@
     function showToast(message, type) {
         const toastContainer = createToastContainer();
         const toast = document.createElement('div');
-        toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show`;
+        toast.className = `alert bg-${type === 'success' ? 'success' : 'danger'} text-white alert-dismissible fade show`;
         toast.style.cssText = 'margin-bottom: 0.5rem;';
         toast.innerHTML = `
             <div class="d-flex">
                 <div>
-                    <i class="ti ti-${type === 'success' ? 'check' : 'exclamation-circle'} icon alert-icon me-2"></i>
+                    <i class="ti ti-${type === 'success' ? 'check' : 'exclamation-circle'} text-white icon alert-icon me-2"></i>
                 </div>
                 <div>${message}</div>
             </div>

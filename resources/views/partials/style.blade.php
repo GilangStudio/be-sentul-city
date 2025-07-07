@@ -15,6 +15,10 @@
         color: var(--tblr-navbar-active-color) !important;
         background-color: var(--tblr-dropdown-link-hover-bg) !important;
     }
+
+    #search-input {
+        min-width: 200px;
+    }
 </style>
 
 @stack('styles')

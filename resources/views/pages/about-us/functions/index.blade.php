@@ -128,7 +128,7 @@
 {{-- Search and Filter Form --}}
 <div class="col-12">
     <form method="GET" action="{{ route('about-us.functions.index') }}" id="filter-form">
-        <div class="d-flex justify-content-between align-items-center gap-2">
+        <div class="d-flex justify-content-start align-items-center gap-2">
             <div class="input-icon" style="max-width: 350px;">
                 <span class="input-icon-addon">
                     <i class="ti ti-search"></i>
@@ -515,13 +515,25 @@
                 chosenClass: 'sortable-chosen',
                 onEnd: function(evt) {
                     const orders = [];
-                    const items = sortableContainer.querySelectorAll('[data-id]');
+                    // Get only direct children with data-id to avoid duplicates
+                    const items = sortableContainer.children;
                     
-                    items.forEach((item, index) => {
-                        orders.push({
-                            id: item.dataset.id,
-                            order: index + 1
-                        });
+                    // Get current page parameters to maintain context
+                    const currentPage = {{ $items->currentPage() }};
+                    const perPage = {{ $items->perPage() }};
+                    
+                    // Calculate offset for current page
+                    const offset = (currentPage - 1) * perPage;
+                    
+                    Array.from(items).forEach((item, index) => {
+                        const itemId = item.getAttribute('data-id');
+                        if (itemId) {
+                            const newOrder = offset + index + 1;
+                            orders.push({
+                                id: itemId,
+                                order: newOrder
+                            });
+                        }
                     });
                     
                     updateOrder(orders);
@@ -538,12 +550,16 @@
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
             },
-            body: JSON.stringify({ orders: orders })
+            body: JSON.stringify({ 
+                orders: orders,
+                current_page: {{ $items->currentPage() }}
+            })
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
                 showToast(data.message, 'success');
+                // Reorder all items to ensure no gaps in ordering
                 setTimeout(() => {
                     window.location.reload();
                 }, 1000);
