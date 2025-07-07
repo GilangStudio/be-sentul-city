@@ -142,7 +142,7 @@
                 </div>
                 <div class="card-body">
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-12">
                             <div class="mb-3">
                                 <label class="form-label">Section Title <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control @error('neighborhood_title') is-invalid @enderror" 
@@ -153,23 +153,11 @@
                                 @enderror
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" name="is_active" value="1" 
-                                           {{ old('is_active', $newResidentsPage->is_active ?? true) ? 'checked' : '' }}>
-                                    <span class="form-check-label">Active Page</span>
-                                </label>
-                                <small class="form-hint d-block">
-                                    Make the new residents page publicly accessible.
-                                </small>
-                            </div>
-                        </div>
                         <div class="col-12">
                             <div class="mb-3">
                                 <label class="form-label">Section Description <span class="text-danger">*</span></label>
                                 <textarea class="form-control @error('neighborhood_description') is-invalid @enderror" 
-                                          name="neighborhood_description" id="neighborhood-editor" rows="6" required
+                                          name="neighborhood_description" id="editor" rows="6" required
                                           placeholder="Enter neighborhood guide description...">{{ old('neighborhood_description', $newResidentsPage->neighborhood_description ?? '') }}</textarea>
                                 @error('neighborhood_description')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -234,6 +222,43 @@
                         @error('neighborhood_image_alt_text')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
+                    </div>
+                </div>
+            </div>
+
+            {{-- Page Settings --}}
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="ti ti-settings me-2"></i>
+                        Page Settings
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="is_active" value="1" 
+                                   {{ old('is_active', $newResidentsPage->is_active ?? true) ? 'checked' : '' }}>
+                            <span class="form-check-label">Active Status</span>
+                        </label>
+                        @error('is_active')
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                        @enderror
+                        <small class="form-hint d-block">
+                            <i class="ti ti-info-circle me-1"></i>
+                            Only active pages will be publicly accessible on the website.
+                        </small>
+                        @if($newResidentsPage && $newResidentsPage->is_active)
+                        <small class="text-success d-block mt-1">
+                            <i class="ti ti-check me-1"></i>
+                            This page is currently active and visible to visitors.
+                        </small>
+                        @elseif($newResidentsPage)
+                        <small class="text-warning d-block mt-1">
+                            <i class="ti ti-alert-triangle me-1"></i>
+                            This page is currently inactive and hidden from visitors.
+                        </small>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -371,14 +396,14 @@
             mainForm.addEventListener('submit', function(e) {
                 // Validate neighborhood description from editor
                 try {
-                    const neighborhoodEditorContent = hugeRTE.get('neighborhood-editor').getContent();
+                    const neighborhoodEditorContent = hugeRTE.get('editor').getContent();
                     const neighborhoodError = document.getElementById('neighborhood-description-error');
                     
                     if (!neighborhoodEditorContent.trim() || neighborhoodEditorContent.trim() === '<p></p>' || neighborhoodEditorContent.trim() === '<p><br></p>') {
                         e.preventDefault();
                         neighborhoodError.textContent = 'Neighborhood description is required.';
                         neighborhoodError.style.display = 'block';
-                        document.getElementById('neighborhood-editor').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        document.getElementById('editor').scrollIntoView({ behavior: 'smooth', block: 'center' });
                         return false;
                     } else {
                         neighborhoodError.style.display = 'none';
