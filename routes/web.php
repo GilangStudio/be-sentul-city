@@ -12,6 +12,7 @@ use App\Http\Controllers\NewsCategoryController;
 use App\Http\Controllers\ServicesPageController;
 use App\Http\Controllers\AboutServicesController;
 use App\Http\Controllers\AboutFunctionsController;
+use App\Http\Controllers\ServiceSectionController;
 use App\Http\Controllers\PracticalInfoPlaceController;
 use App\Http\Controllers\TransportationItemController;
 use App\Http\Controllers\AboutExecutiveSummaryController;
@@ -132,14 +133,15 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', [ServicesPageController::class, 'index'])->name('index');
         Route::post('/', [ServicesPageController::class, 'updateOrCreate'])->name('updateOrCreate');
         
-        // Service Sections Routes - Updated to use separate pages
+        // Service Sections Routes - Using dedicated controller
         Route::prefix('sections')->name('sections.')->group(function () {
-            Route::get('/create', [ServicesPageController::class, 'createSections'])->name('create');
-            Route::post('/', [ServicesPageController::class, 'storeSections'])->name('store');
-            Route::get('/{section}/edit', [ServicesPageController::class, 'editSections'])->name('edit');
-            Route::put('/{section}', [ServicesPageController::class, 'updateSections'])->name('update');
-            Route::delete('/{section}', [ServicesPageController::class, 'destroySections'])->name('destroy');
-            Route::post('/update-order', [ServicesPageController::class, 'updateSectionsOrder'])->name('update-order');
+            Route::get('/', [ServiceSectionController::class, 'index'])->name('index');
+            Route::get('/create', [ServiceSectionController::class, 'create'])->name('create');
+            Route::post('/create', [ServiceSectionController::class, 'store'])->name('store');
+            Route::get('/{section}/edit', [ServiceSectionController::class, 'edit'])->name('edit');
+            Route::put('/{section}', [ServiceSectionController::class, 'update'])->name('update');
+            Route::delete('/{section}', [ServiceSectionController::class, 'destroy'])->name('destroy');
+            Route::post('/update-order', [ServiceSectionController::class, 'updateOrder'])->name('update-order');
         });
     });
 

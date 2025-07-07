@@ -84,10 +84,10 @@
                                     <i class="ti ti-settings me-2"></i>
                                     Page Settings
                                 </a>
-                                <a class="dropdown-item {{ Route::is('new-residents.categories.*') ? 'active' : '' }} text-truncate"
+                                <a class="dropdown-item {{ Route::is('new-residents.categories.*') ? 'active' : '' }}"
                                     href="{{ route('new-residents.categories.index') }}">
                                     <i class="ti ti-folder me-2"></i>
-                                    Categories
+                                    Practical Info Categories
                                 </a>
                                 <a class="dropdown-item {{ Route::is('new-residents.places.*') ? 'active' : '' }}"
                                     href="{{ route('new-residents.places.index') }}">
@@ -104,13 +104,30 @@
                     </div>
                 </li>
 
-                <li class="nav-item {{ Route::is('services.*') ? 'active' : '' }}">
-                    <a class="nav-link" href="{{ route('services.index') }}">
+                <li class="nav-item dropdown {{ Route::is('services.*') ? 'active' : '' }}">
+                    <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" data-bs-auto-close="false"
+                        role="button" aria-expanded="false">
                         <span class="nav-link-icon d-md-none d-lg-inline-block">
                             <i class="ti ti-tools fs-2"></i>
                         </span>
                         <span class="nav-link-title">Our Services</span>
                     </a>
+                    <div class="dropdown-menu {{ Route::is('services.*') ? 'show' : '' }}">
+                        <div class="dropdown-menu-columns">
+                            <div class="dropdown-menu-column">
+                                <a class="dropdown-item {{ Route::is('services.index') ? 'active' : '' }}"
+                                    href="{{ route('services.index') }}">
+                                    <i class="ti ti-settings me-2"></i>
+                                    Page Settings
+                                </a>
+                                <a class="dropdown-item {{ Route::is('services.sections.*') ? 'active' : '' }}"
+                                    href="{{ route('services.sections.index') }}">
+                                    <i class="ti ti-layout-grid me-2"></i>
+                                    Service Sections
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 </li>
 
                 <li class="nav-item dropdown {{ Route::is('news.*') ? 'active' : '' }}">
