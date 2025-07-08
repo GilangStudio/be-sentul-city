@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\NewsController;
+use App\Http\Controllers\ETownController;
 use App\Http\Controllers\PromoController;
 use App\Http\Controllers\AboutUsController;
 use App\Http\Controllers\HomePageController;
@@ -166,6 +167,12 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('/{section}', [ServiceSectionController::class, 'destroy'])->name('destroy');
             Route::post('/update-order', [ServiceSectionController::class, 'updateOrder'])->name('update-order');
         });
+    });
+
+    Route::prefix('e-town')->name('e-town.')->group(function () {
+        Route::get('/', [ETownController::class, 'index'])->name('index');
+        Route::post('/', [ETownController::class, 'updateOrCreate'])->name('updateOrCreate');
+        // Route::delete('/', [ETownController::class, 'destroy'])->name('destroy');
     });
 
     Route::prefix('careers')->name('careers.')->group(function () {

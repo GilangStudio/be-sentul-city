@@ -130,6 +130,15 @@
                     </div>
                 </li>
 
+                <li class="nav-item {{ Route::is('e-town.*') ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('e-town.index') }}">
+                        <span class="nav-link-icon d-md-none d-lg-inline-block">
+                            <i class="ti ti-device-mobile fs-2"></i>
+                        </span>
+                        <span class="nav-link-title">E-Town App</span>
+                    </a>
+                </li>
+
                 <li class="nav-item dropdown {{ Route::is('news.*') ? 'active' : '' }}">
                     <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" data-bs-auto-close="false"
                         role="button" aria-expanded="false">
