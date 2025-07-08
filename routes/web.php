@@ -37,9 +37,7 @@ Route::middleware(['auth'])->group(function () {
     // Home Page Management Routes
     Route::prefix('home-page')->name('home-page.')->group(function () {
         Route::get('/', [HomePageController::class, 'index'])->name('index');
-        Route::post('/', [HomePageController::class, 'store'])->name('store');
-        Route::put('/', [HomePageController::class, 'update'])->name('update');
-        Route::delete('/', [HomePageController::class, 'destroy'])->name('destroy');
+        Route::put('/', [HomePageController::class, 'updateOrCreate'])->name('updateOrCreate');
     });
 
     // About Us Management Routes
