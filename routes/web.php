@@ -8,6 +8,7 @@ use App\Http\Controllers\PromoController;
 use App\Http\Controllers\AboutUsController;
 use App\Http\Controllers\HomePageController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\CareerPageController;
 use App\Http\Controllers\NewResidentsController;
 use App\Http\Controllers\NewsCategoryController;
@@ -30,9 +31,7 @@ Route::middleware(['guest'])->group(function () {
 });
 
 Route::middleware(['auth'])->group(function () {
-    Route::get('/', function () {
-        return view('pages.dashboard.index');
-    })->name('dashboard');
+    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
     // Home Page Management Routes
     Route::prefix('home-page')->name('home-page.')->group(function () {
