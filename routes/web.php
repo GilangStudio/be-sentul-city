@@ -37,7 +37,17 @@ Route::middleware(['auth'])->group(function () {
     // Home Page Management Routes
     Route::prefix('home-page')->name('home-page.')->group(function () {
         Route::get('/', [HomePageController::class, 'index'])->name('index');
-        Route::put('/', [HomePageController::class, 'updateOrCreate'])->name('updateOrCreate');
+        
+        // SEO Settings
+        Route::post('/', [HomePageController::class, 'updateSeoSettings'])->name('seo.update');
+        
+        // Banner Management
+        Route::prefix('banners')->name('banners.')->group(function () {
+            Route::post('/', [HomePageController::class, 'storeBanner'])->name('store');
+            Route::put('/{banner}', [HomePageController::class, 'updateBanner'])->name('update');
+            Route::delete('/{banner}', [HomePageController::class, 'destroyBanner'])->name('destroy');
+            Route::post('/update-order', [HomePageController::class, 'updateBannerOrder'])->name('update-order');
+        });
     });
 
     // About Us Management Routes

@@ -3,356 +3,215 @@
 namespace App\Http\Controllers;
 
 use App\Models\HomePageSetting;
-use App\Models\HomeFeature;
-use App\Models\HomeFeaturedUnit;
-use App\Models\Unit;
+use App\Models\HomePageBanner;
 use Illuminate\Http\Request;
 use App\Services\ImageService;
 use App\Services\GeneratorService;
 
 class HomePageController extends Controller
 {
+    /**
+     * Display homepage management
+     */
     public function index()
     {
-        $homePage = HomePageSetting::first();
+        $homePageSettings = HomePageSetting::first();
+        $banners = HomePageBanner::ordered()->get();
         
-        return view('pages.home-page.index', compact('homePage'));
+        return view('pages.home-page.index', compact('homePageSettings', 'banners'));
     }
 
-    public function store(Request $request)
+    /**
+     * Update or create homepage SEO settings
+     */
+    public function updateSeoSettings(Request $request)
     {
         $request->validate([
-            'banner_type' => 'required|in:image,video',
-            'banner_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:10240',
-            'banner_video' => 'nullable|mimes:mp4,mov,avi|max:51200', // 50MB
-            'banner_alt_text' => 'nullable|string|max:255',
-            'hero_title' => 'required|string|max:255',
-            'hero_description' => 'required|string',
-            'about_section_title' => 'nullable|string|max:255',
-            'about_title' => 'required|string|max:255',
-            'about_description' => 'required|string',
-            'about_image' => 'required|image|mimes:jpg,jpeg,png,webp|max:5120',
-            'about_image_alt_text' => 'nullable|string|max:255',
-            'about_link_text' => 'nullable|string|max:100',
-            'about_link_url' => 'nullable|url|max:255',
-            'features_section_title' => 'nullable|string|max:255',
-            'features_title' => 'required|string|max:255',
-            'features_description' => 'nullable|string',
-            'features_image' => 'required|image|mimes:jpg,jpeg,png,webp|max:5120',
-            'features_image_alt_text' => 'nullable|string|max:255',
-            'features_link_text' => 'nullable|string|max:100',
-            'features_link_url' => 'nullable|url|max:255',
-            'location_section_title' => 'nullable|string|max:255',
-            'location_title' => 'required|string|max:255',
-            'location_description' => 'required|string',
-            'location_image' => 'required|image|mimes:jpg,jpeg,png,webp|max:5120',
-            'location_image_alt_text' => 'nullable|string|max:255',
-            'location_link_text' => 'nullable|string|max:100',
-            'location_link_url' => 'nullable|url|max:255',
-            'brochure_file' => 'nullable|mimes:pdf|max:20480',
-        ], [
-            'banner_type.required' => 'Banner type is required',
-            'banner_image.image' => 'Banner must be an image file',
-            'banner_image.max' => 'Banner image size cannot exceed 10MB',
-            'banner_video.mimes' => 'Banner video must be mp4, mov, or avi format',
-            'banner_video.max' => 'Banner video size cannot exceed 50MB',
-            'hero_title.required' => 'Hero title is required',
-            'hero_description.required' => 'Hero description is required',
-            'about_section_title.required' => 'About section title is required',
-            'about_title.required' => 'About section title is required',
-            'about_description.required' => 'About section description is required',
-            'about_image.required' => 'About section image is required',
-            'about_image.image' => 'About image must be an image file',
-            'about_image.max' => 'About image size cannot exceed 5MB',
-            'features_title.required' => 'Features section title is required',
-            'features_image.required' => 'Features section image is required',
-            'features_image.image' => 'Features image must be an image file',
-            'features_image.max' => 'Features image size cannot exceed 5MB',
-            'location_title.required' => 'Location section title is required',
-            'location_description.required' => 'Location section description is required',
-            'location_image.required' => 'Location section image is required',
-            'location_image.image' => 'Location image must be an image file',
-            'location_image.max' => 'Location image size cannot exceed 5MB',
-            'brochure_file.mimes' => 'Brochure file must be PDF format',
-            'brochure_file.max' => 'Brochure file size cannot exceed 20MB',
-        ]);
-
-        try {
-            // Upload banner media
-            $bannerImagePath = null;
-            $bannerVideoPath = null;
-            
-            if ($request->banner_type === 'image' && $request->hasFile('banner_image')) {
-                $bannerImagePath = ImageService::uploadAndCompress(
-                    $request->file('banner_image'),
-                    'home-page/banner',
-                    85,
-                    1920
-                );
-            } elseif ($request->banner_type === 'video' && $request->hasFile('banner_video')) {
-                $bannerVideoPath = $request->file('banner_video')->store('home-page/banner', 'public');
-            }
-
-            // Upload other images
-            $aboutImagePath = ImageService::uploadAndCompress(
-                $request->file('about_image'),
-                'home-page/about',
-                85,
-                1200
-            );
-
-            $featuresImagePath = ImageService::uploadAndCompress(
-                $request->file('features_image'),
-                'home-page/features',
-                85,
-                1200
-            );
-
-            $locationImagePath = ImageService::uploadAndCompress(
-                $request->file('location_image'),
-                'home-page/location',
-                85,
-                1200
-            );
-
-            $brochureFilePath = null;
-            if ($request->hasFile('brochure_file')) {
-                $brochureFilePath = $request->file('brochure_file')->store('home-page/brochure', 'public');
-            }
-
-            HomePageSetting::create([
-                'banner_type' => $request->banner_type,
-                'banner_image_path' => $bannerImagePath,
-                'banner_video_path' => $bannerVideoPath,
-                'banner_alt_text' => $request->banner_alt_text,
-                'hero_title' => $request->hero_title,
-                'hero_description' => $request->hero_description,
-                'about_section_title' => $request->about_section_title?: 'About The Development',
-                'about_title' => $request->about_title,
-                'about_description' => $request->about_description,
-                'about_image_path' => $aboutImagePath,
-                'about_image_alt_text' => $request->about_image_alt_text,
-                'about_link_text' => $request->about_link_text ?: 'Discover More',
-                'about_link_url' => $request->about_link_url,
-                'features_section_title' => $request->features_section_title ?: 'Exclusive Features',
-                'features_title' => $request->features_title,
-                'features_description' => $request->features_description,
-                'features_image_path' => $featuresImagePath,
-                'features_image_alt_text' => $request->features_image_alt_text,
-                'features_link_text' => $request->features_link_text ?: 'Learn More',
-                'features_link_url' => $request->features_link_url,
-                'location_section_title' => $request->location_section_title ?: 'Location & Accessibility',
-                'location_title' => $request->location_title,
-                'location_description' => $request->location_description,
-                'location_image_path' => $locationImagePath,
-                'location_image_alt_text' => $request->location_image_alt_text,
-                'location_link_text' => $request->location_link_text ?: 'Get Direction',
-                'location_link_url' => $request->location_link_url,
-                'brochure_file_path' => $brochureFilePath,
-                'is_active' => $request->has('status')
-            ]);
-
-            return redirect()->route('home-page.index')
-                           ->with('success', 'Home page settings created successfully');
-
-        } catch (\Exception $e) {
-            return redirect()->back()
-                           ->withInput()
-                           ->with('error', 'Failed to create home page settings: ' . $e->getMessage());
-        }
-    }
-
-    public function update(Request $request)
-    {
-        $homePage = HomePageSetting::first();
-        
-        if (!$homePage) {
-            return redirect()->route('home-page.index')
-                           ->with('error', 'Home page settings not found');
-        }
-
-        $request->validate([
-            'banner_type' => 'required|in:image,video',
-            'banner_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:10240',
-            'banner_video' => 'nullable|mimes:mp4,mov,avi|max:51200',
-            'banner_alt_text' => 'nullable|string|max:255',
-            'hero_title' => 'required|string|max:255',
-            'hero_description' => 'required|string',
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:500',
             'meta_keywords' => 'nullable|string|max:255',
-            'about_section_title' => 'nullable|string|max:255',
-            'about_title' => 'required|string|max:255',
-            'about_description' => 'required|string',
-            'about_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
-            'about_image_alt_text' => 'nullable|string|max:255',
-            'about_link_text' => 'nullable|string|max:100',
-            'about_link_url' => 'nullable|url|max:255',
-            'features_section_title' => 'nullable|string|max:255',
-            'features_title' => 'required|string|max:255',
-            'features_description' => 'nullable|string',
-            'features_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
-            'features_image_alt_text' => 'nullable|string|max:255',
-            'features_link_text' => 'nullable|string|max:100',
-            'features_link_url' => 'nullable|url|max:255',
-            'location_section_title' => 'nullable|string|max:255',
-            'location_title' => 'required|string|max:255',
-            'location_description' => 'required|string',
-            'location_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
-            'location_image_alt_text' => 'nullable|string|max:255',
-            'location_link_text' => 'nullable|string|max:100',
-            'location_link_url' => 'nullable|url|max:255',
-            'brochure_file' => 'nullable|mimes:pdf|max:20480',
+        ], [
+            'meta_title.max' => 'Meta title cannot exceed 255 characters',
+            'meta_description.max' => 'Meta description cannot exceed 500 characters',
+            'meta_keywords.max' => 'Meta keywords cannot exceed 255 characters',
         ]);
 
         try {
-            // Handle banner media update
-            $bannerImagePath = $homePage->banner_image_path;
-            $bannerVideoPath = $homePage->banner_video_path;
+            $homePageSettings = HomePageSetting::first();
             
-            if ($request->banner_type === 'image') {
-                // If switching to image or updating image
-                if ($request->hasFile('banner_image')) {
-                    // Delete old video if exists
-                    if ($bannerVideoPath) {
-                        ImageService::deleteFile($bannerVideoPath);
-                        $bannerVideoPath = null;
-                    }
-                    // Update image
-                    $bannerImagePath = ImageService::updateImage(
-                        $request->file('banner_image'),
-                        $bannerImagePath,
-                        'home-page/banner',
-                        85,
-                        1920
-                    );
-                }
-            } elseif ($request->banner_type === 'video') {
-                // If switching to video or updating video
-                if ($request->hasFile('banner_video')) {
-                    // Delete old image if exists
-                    if ($bannerImagePath) {
-                        ImageService::deleteFile($bannerImagePath);
-                        $bannerImagePath = null;
-                    }
-                    // Delete old video if exists
-                    if ($bannerVideoPath) {
-                        ImageService::deleteFile($bannerVideoPath);
-                    }
-                    // Upload new video
-                    $bannerVideoPath = $request->file('banner_video')->store('home-page/banner', 'public');
-                }
+            if ($homePageSettings) {
+                $homePageSettings->update([
+                    'meta_title' => $request->meta_title,
+                    'meta_description' => $request->meta_description,
+                    'meta_keywords' => $request->meta_keywords,
+                ]);
+                $message = 'Homepage SEO settings updated successfully';
+            } else {
+                HomePageSetting::create([
+                    'meta_title' => $request->meta_title,
+                    'meta_description' => $request->meta_description,
+                    'meta_keywords' => $request->meta_keywords,
+                ]);
+                $message = 'Homepage SEO settings created successfully';
             }
 
-            // Update other images
-            $aboutImagePath = ImageService::updateImage(
-                $request->file('about_image'),
-                $homePage->about_image_path,
-                'home-page/about',
-                85,
-                1200
-            );
-
-            $featuresImagePath = ImageService::updateImage(
-                $request->file('features_image'),
-                $homePage->features_image_path,
-                'home-page/features',
-                85,
-                1200
-            );
-
-            $locationImagePath = ImageService::updateImage(
-                $request->file('location_image'),
-                $homePage->location_image_path,
-                'home-page/location',
-                85,
-                1200
-            );
-
-            $brochureFilePath = $homePage->brochure_file_path;
-
-            if ($request->hasFile('brochure_file')) {
-                // Delete old brochure if exists
-                if ($brochureFilePath) {
-                    ImageService::deleteFile($brochureFilePath);
-                }
-                // Upload new brochure
-                $brochureFilePath = $request->file('brochure_file')->store('home-page/brochure', 'public');
-            }
-
-            $homePage->update([
-                'banner_type' => $request->banner_type,
-                'banner_image_path' => $bannerImagePath,
-                'banner_video_path' => $bannerVideoPath,
-                'banner_alt_text' => $request->banner_alt_text,
-                'hero_title' => $request->hero_title,
-                'hero_description' => $request->hero_description,
-                'meta_title' => $request->meta_title,
-                'meta_description' => $request->meta_description,
-                'meta_keywords' => $request->meta_keywords,
-                'about_section_title' => $request->about_section_title?: 'About The Development',
-                'about_title' => $request->about_title,
-                'about_description' => $request->about_description,
-                'about_image_path' => $aboutImagePath,
-                'about_image_alt_text' => $request->about_image_alt_text,
-                'about_link_text' => $request->about_link_text ?: 'Discover More',
-                'about_link_url' => $request->about_link_url,
-                'features_section_title' => $request->features_section_title ?: 'Exclusive Features',
-                'features_title' => $request->features_title,
-                'features_description' => $request->features_description,
-                'features_image_path' => $featuresImagePath,
-                'features_image_alt_text' => $request->features_image_alt_text,
-                'features_link_text' => $request->features_link_text ?: 'Learn More',
-                'features_link_url' => $request->features_link_url,
-                'location_section_title' => $request->location_section_title ?: 'Location & Accessibility',
-                'location_title' => $request->location_title,
-                'location_description' => $request->location_description,
-                'location_image_path' => $locationImagePath,
-                'location_image_alt_text' => $request->location_image_alt_text,
-                'location_link_text' => $request->location_link_text ?: 'Get Direction',
-                'location_link_url' => $request->location_link_url,
-                'brochure_file_path' => $brochureFilePath,
-                'is_active' => $request->has('status')
-            ]);
-
-            return redirect()->route('home-page.index')
-                           ->with('success', 'Home page settings updated successfully');
+            return redirect()->route('home-page.index')->with('success', $message);
 
         } catch (\Exception $e) {
             return redirect()->back()
                            ->withInput()
-                           ->with('error', 'Failed to update home page settings: ' . $e->getMessage());
+                           ->with('error', 'Failed to save SEO settings: ' . $e->getMessage());
         }
     }
 
-    public function destroy()
+    /**
+     * Store new banner
+     */
+    public function storeBanner(Request $request)
     {
-        $homePage = HomePageSetting::first();
-        
-        if (!$homePage) {
-            return redirect()->route('home-page.index')
-                           ->with('error', 'Home page settings not found');
-        }
+        $request->validate([
+            'title' => 'nullable|string|max:255',
+            'subtitle' => 'nullable|string',
+            'button_text' => 'nullable|string|max:100',
+            'button_url' => 'nullable|url|max:500',
+            'image' => 'required|image|mimes:jpg,jpeg,png,webp|max:10240', // 10MB
+            'image_alt_text' => 'nullable|string|max:255',
+        ], [
+            'image.required' => 'Banner image is required',
+            'image.image' => 'File must be an image',
+            'image.max' => 'Image size cannot exceed 10MB',
+            'button_url.url' => 'Button URL must be a valid URL',
+            'title.max' => 'Title cannot exceed 255 characters',
+            'button_text.max' => 'Button text cannot exceed 100 characters',
+        ]);
 
         try {
-            // Delete all associated images and videos
-            ImageService::deleteFiles([
-                $homePage->banner_image_path,
-                $homePage->banner_video_path,
-                $homePage->about_image_path,
-                $homePage->features_image_path,
-                $homePage->location_image_path,
-                $homePage->brochure_file_path,
+            // Upload image
+            $imagePath = ImageService::uploadAndCompress(
+                $request->file('image'),
+                'homepage/banners',
+                85,
+                1920
+            );
+
+            // Generate order
+            $order = GeneratorService::generateOrder(new HomePageBanner());
+
+            HomePageBanner::create([
+                'title' => $request->title,
+                'subtitle' => $request->subtitle,
+                'button_text' => $request->button_text,
+                'button_url' => $request->button_url,
+                'image_path' => $imagePath,
+                'image_alt_text' => $request->image_alt_text,
+                'order' => $order,
+                'is_active' => $request->has('is_active'),
             ]);
 
-            $homePage->delete();
+            return redirect()->route('home-page.index')
+                           ->with('success', 'Banner created successfully');
+
+        } catch (\Exception $e) {
+            return redirect()->back()
+                           ->with('error', 'Failed to create banner: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Update banner
+     */
+    public function updateBanner(Request $request, HomePageBanner $banner)
+    {
+        $request->validate([
+            'title' => 'nullable|string|max:255',
+            'subtitle' => 'nullable|string',
+            'button_text' => 'nullable|string|max:100',
+            'button_url' => 'nullable|url|max:500',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:10240',
+            'image_alt_text' => 'nullable|string|max:255',
+        ], [
+            'image.image' => 'File must be an image',
+            'image.max' => 'Image size cannot exceed 10MB',
+            'button_url.url' => 'Button URL must be a valid URL',
+            'title.max' => 'Title cannot exceed 255 characters',
+            'button_text.max' => 'Button text cannot exceed 100 characters',
+        ]);
+
+        try {
+            // Update image if new file provided
+            $imagePath = ImageService::updateImage(
+                $request->file('image'),
+                $banner->image_path,
+                'homepage/banners',
+                85,
+                1920
+            );
+
+            $banner->update([
+                'title' => $request->title,
+                'subtitle' => $request->subtitle,
+                'button_text' => $request->button_text,
+                'button_url' => $request->button_url,
+                'image_path' => $imagePath,
+                'image_alt_text' => $request->image_alt_text,
+                'is_active' => $request->has('is_active'),
+            ]);
 
             return redirect()->route('home-page.index')
-                           ->with('success', 'Home page settings deleted successfully');
+                           ->with('success', 'Banner updated successfully');
+
+        } catch (\Exception $e) {
+            return redirect()->back()
+                           ->with('error', 'Failed to update banner: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Delete banner
+     */
+    public function destroyBanner(HomePageBanner $banner)
+    {
+        try {
+            // Delete image if exists
+            if ($banner->image_path) {
+                ImageService::deleteFile($banner->image_path);
+            }
+
+            $banner->delete();
+
+            // Reorder remaining banners
+            GeneratorService::reorderAfterDelete(new HomePageBanner());
+
+            return redirect()->route('home-page.index')
+                           ->with('success', 'Banner deleted successfully');
 
         } catch (\Exception $e) {
             return redirect()->route('home-page.index')
-                           ->with('error', 'Failed to delete home page settings: ' . $e->getMessage());
+                           ->with('error', 'Failed to delete banner: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Update banners order
+     */
+    public function updateBannerOrder(Request $request)
+    {
+        $request->validate([
+            'orders' => 'required|array',
+            'orders.*.id' => 'required|exists:home_page_banners,id',
+            'orders.*.order' => 'required|integer|min:1',
+        ]);
+
+        try {
+            foreach ($request->orders as $item) {
+                HomePageBanner::where('id', $item['id'])
+                             ->update(['order' => $item['order']]);
+            }
+
+            return response()->json(['success' => true, 'message' => 'Banner order updated successfully']);
+
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Failed to update banner order: ' . $e->getMessage()]);
         }
     }
 }

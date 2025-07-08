@@ -8,15 +8,16 @@ class HomePageSetting extends Model
 {
     protected $guarded = ['id'];
 
-    // Accessors for image URLs
-    public function getBannerImageUrlAttribute()
+    // Relationships
+    public function banners()
     {
-        return $this->banner_image_path ? asset('storage/' . $this->banner_image_path) : null;
+        return $this->hasMany(HomePageBanner::class);
     }
 
+    // Accessors for SEO
     public function getMetaTitleDisplayAttribute()
     {
-        return $this->meta_title ?: '';
+        return $this->meta_title ?: 'Sentul City - Your Dream City';
     }
 
     public function getMetaDescriptionDisplayAttribute()
@@ -27,11 +28,5 @@ class HomePageSetting extends Model
     public function getMetaKeywordsDisplayAttribute()
     {
         return $this->meta_keywords ?: '';
-    }
-
-    // Helper method to get banner media URL
-    public function getBannerMediaUrlAttribute()
-    {
-        return $this->banner_image_url;
     }
 }

@@ -1,1373 +1,482 @@
 @extends('layouts.main')
 
-@section('title', 'Home Page')
+@section('title', 'Home Page Management')
+
+@push('styles')
+<style>
+    .banner-card {
+        transition: all 0.3s ease;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    
+    .banner-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    .banner-image {
+        height: 200px;
+        object-fit: cover;
+        background-color: #f8f9fa;
+    }
+    
+    .sortable-handle {
+        cursor: grab;
+        color: #6c757d;
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(255,255,255,0.9);
+        border-radius: 4px;
+        padding: 4px;
+        z-index: 10;
+    }
+    
+    .sortable-handle:hover {
+        color: var(--bs-primary);
+        background: rgba(255,255,255,1);
+    }
+    
+    .sortable-ghost {
+        opacity: 0.5;
+    }
+    
+    .sortable-chosen {
+        transform: rotate(2deg);
+    }
+    
+    .banner-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.7) 100%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .banner-card:hover .banner-overlay {
+        opacity: 1;
+    }
+    
+    .banner-actions {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .banner-card:hover .banner-actions {
+        opacity: 1;
+    }
+    
+    .banner-status {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        z-index: 10;
+    }
+    
+    .banner-order {
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0,0,0,0.7);
+        color: white;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        z-index: 10;
+    }
+    
+    .loading {
+        pointer-events: none;
+        opacity: 0.6;
+    }
+    
+    .image-preview-container {
+        max-height: 300px;
+        overflow: hidden;
+        border-radius: 8px;
+    }
+    
+    .banner-content-preview {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(transparent, rgba(0,0,0,0.8));
+        color: white;
+        padding: 1rem;
+        text-align: center;
+    }
+    
+    .banner-preview-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+    
+    .banner-preview-subtitle {
+        font-size: 0.9rem;
+        opacity: 0.9;
+        margin-bottom: 0.5rem;
+    }
+    
+    .banner-preview-button {
+        display: inline-block;
+        background: var(--bs-primary);
+        color: white;
+        padding: 0.375rem 0.75rem;
+        border-radius: 0.375rem;
+        text-decoration: none;
+        font-size: 0.875rem;
+    }
+</style>
+@endpush
 
 @section('header')
 <div class="d-flex justify-content-between align-items-center">
-    <h2 class="page-title">Home Page</h2>
-    @if($homePage)
-    <div class="btn-list">
-        <button type="button" class="btn btn-outline-danger delete-btn"
-                data-id="{{ $homePage->id }}"
-                data-name="Home Page Settings"
-                data-url="{{ route('home-page.destroy') }}">
-            <i class="ti ti-trash me-1"></i> Reset All
-        </button>
+    <div>
+        <h2 class="page-title">Home Page Management</h2>
+        <div class="page-subtitle">Manage homepage SEO settings and hero banners</div>
     </div>
-    @endif
 </div>
 @endsection
 
 @section('content')
-{{-- Alert Messages --}}
-@if(session('success'))
-<div class="alert alert-success alert-dismissible" role="alert">
-    <div class="d-flex">
-        <div>
-            <i class="ti ti-check icon alert-icon me-2"></i>
-        </div>
-        <div>{{ session('success') }}</div>
-    </div>
-    <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
-</div>
-@endif
 
-@if(session('error'))
-<div class="alert alert-danger alert-dismissible" role="alert">
-    <div class="d-flex">
-        <div>
-            <i class="ti ti-exclamation-circle icon alert-icon me-2"></i>
-        </div>
-        <div>{{ session('error') }}</div>
-    </div>
-    <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
-</div>
-@endif
-
-{{-- Quick Navigation --}}
-<div class="row g-3">
+{{-- SEO Settings Form --}}
+<form method="POST" action="{{ route('home-page.seo.update') }}" id="seo-form">
+    @csrf
     <div class="col-12">
-        <div class="card">
-            <div class="card-body py-3">
-                <div class="d-flex flex-wrap gap-2">
-                    <a href="#banner-section" class="btn btn-outline-primary btn-sm">
-                        <i class="ti ti-photo me-1"></i> Banner
-                    </a>
-                    <a href="#hero-section" class="btn btn-outline-primary btn-sm">
-                        <i class="ti ti-typography me-1"></i> Hero
-                    </a>
-                    <a href="#brochure-section" class="btn btn-outline-primary btn-sm">
-                        <i class="ti ti-file-text me-1"></i> Brochure
-                    </a>
-                    <a href="#about-section" class="btn btn-outline-primary btn-sm">
-                        <i class="ti ti-info-circle me-1"></i> About
-                    </a>
-                    <a href="#features-section" class="btn btn-outline-primary btn-sm">
-                        <i class="ti ti-star me-1"></i> Features
-                    </a>
-                    <a href="#location-section" class="btn btn-outline-primary btn-sm">
-                        <i class="ti ti-map-pin me-1"></i> Location
-                    </a>
-                    <a href="#featured-units" class="btn btn-outline-primary btn-sm">
-                        <i class="ti ti-home me-1"></i> Featured Units
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-{{-- Home Page Settings Form --}}
-<div class="row g-3">
-    <div class="col-12">
-        <form action="{{ $homePage ? route('home-page.update') : route('home-page.store') }}" method="POST" enctype="multipart/form-data" id="home-page-form">
-            @csrf
-            @if($homePage)
-                @method('PUT')
-            @endif
-            
-            {{-- Banner Section --}}
-            <div class="card" id="banner-section">
-                <div class="card-header">
-                    <h3 class="card-title">
-                        <i class="ti ti-photo me-2"></i>
-                        Banner Section
-                    </h3>
-                    <div class="card-actions">
-                        <span class="badge bg-red-lt">Required</span>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        {{-- Current Banner Preview --}}
-                        @if($homePage && ($homePage->banner_image_url || $homePage->banner_video_url))
-                        <div class="col-12 mb-4">
-                            <label class="form-label text-secondary">Current Banner</label>
-                            <div class="banner-preview-section">
-                                @if($homePage->banner_type === 'video' && $homePage->banner_video_url)
-                                <video controls class="w-100" style="max-height: 300px;">
-                                    <source src="{{ $homePage->banner_video_url }}" type="video/mp4">
-                                    Your browser does not support the video tag.
-                                </video>
-                                @else
-                                <img src="{{ $homePage->banner_image_url }}" class="w-100" style="max-height: 300px; object-fit: cover;">
-                                @endif
-                            </div>
-                        </div>
-                        @endif
-
-                        <div class="col-lg-6">
-                            <div class="mb-3">
-                                <label class="form-label">Banner Type <span class="text-danger">*</span></label>
-                                <select class="form-select @error('banner_type') is-invalid @enderror" 
-                                        name="banner_type" required id="banner-type-select">
-                                    <option value="image" {{ old('banner_type', $homePage->banner_type ?? 'image') === 'image' ? 'selected' : '' }}>Image</option>
-                                    <option value="video" {{ old('banner_type', $homePage->banner_type ?? '') === 'video' ? 'selected' : '' }}>Video</option>
-                                </select>
-                                @error('banner_type')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-                        <div class="col-lg-6">
-                            <div class="mb-3">
-                                <label class="form-label">Banner Alt Text</label>
-                                <input type="text" class="form-control @error('banner_alt_text') is-invalid @enderror" 
-                                       name="banner_alt_text" value="{{ old('banner_alt_text', $homePage->banner_alt_text ?? '') }}" 
-                                       placeholder="Describe banner for accessibility">
-                                @error('banner_alt_text')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                                <small class="form-hint">Helps screen readers describe the banner content.</small>
-                            </div>
-                        </div>
-                        <div class="col-12">
-                            <div class="mb-3" id="banner-image-section">
-                                <label class="form-label">
-                                    Banner Image 
-                                    @if(!$homePage || !$homePage->banner_image_url)
-                                    <span class="text-danger">*</span>
-                                    @endif
-                                </label>
-                                <input type="file" class="form-control @error('banner_image') is-invalid @enderror" 
-                                       name="banner_image" accept="image/*" id="banner-image">
-                                @error('banner_image')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                                <small class="form-hint">
-                                    @if($homePage && $homePage->banner_image_url)
-                                        Leave empty to keep current banner image.
-                                    @endif
-                                    Recommended: 1920x1080px, Max: 10MB. Supported: JPG, PNG, WebP
-                                </small>
-                                <div class="mt-2" id="banner-image-preview"></div>
-                            </div>
-                            <div class="mb-3" id="banner-video-section" style="display: none;">
-                                <label class="form-label">
-                                    Banner Video 
-                                    @if(!$homePage || !$homePage->banner_video_url)
-                                    <span class="text-danger">*</span>
-                                    @endif
-                                </label>
-                                <input type="file" class="form-control @error('banner_video') is-invalid @enderror" 
-                                       name="banner_video" accept="video/*" id="banner-video">
-                                @error('banner_video')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                                <small class="form-hint">
-                                    @if($homePage && $homePage->banner_video_url)
-                                        Leave empty to keep current banner video.
-                                    @endif
-                                    Supported: MP4, MOV, AVI. Max: 50MB
-                                </small>
-                                <div class="mt-2" id="banner-video-preview"></div>
-                            </div>
+        @include('components.seo-meta-form', [
+            'type' => $homePageSettings ? 'edit' : 'create',
+            'data' => $homePageSettings
+        ])
+        
+        <div class="card mt-3">
+            <div class="card-footer bg-transparent">
+                <div class="d-flex justify-content-between align-items-center">
+                    @if($homePageSettings)
+                    <div class="d-flex align-items-center text-secondary">
+                        <i class="ti ti-clock me-2"></i>
+                        <div>
+                            <small class="fw-medium">Last updated:</small>
+                            <small class="d-block">{{ $homePageSettings->updated_at->format('d M Y, H:i') }}</small>
                         </div>
                     </div>
-                </div>
-            </div>
-
-            {{-- Hero Section --}}
-            <div class="card mt-3" id="hero-section">
-                <div class="card-header">
-                    <h3 class="card-title">
-                        <i class="ti ti-typography me-2"></i>
-                        Hero Section
-                    </h3>
-                    <div class="card-actions">
-                        <span class="badge bg-red-lt">Required</span>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="mb-3">
-                                <label class="form-label">Hero Title <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control @error('hero_title') is-invalid @enderror" 
-                                       name="hero_title" value="{{ old('hero_title', $homePage->hero_title ?? '') }}" required
-                                       placeholder="Enter compelling hero title">
-                                @error('hero_title')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                                <small class="form-hint">Main heading that appears over the banner. Keep it concise and impactful.</small>
-                            </div>
-                        </div>
-                        <div class="col-12">
-                            <div class="mb-3">
-                                <label class="form-label">Hero Description <span class="text-danger">*</span></label>
-                                <textarea class="form-control @error('hero_description') is-invalid @enderror" 
-                                          name="hero_description" rows="3" required 
-                                          placeholder="Enter hero description">{{ old('hero_description', $homePage->hero_description ?? '') }}</textarea>
-                                @error('hero_description')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                                <small class="form-hint">Subtitle that appears below the hero title. Briefly describe your development.</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {{-- SEO Meta --}}
-            @include('components.seo-meta-form', ['data' => $homePage, 'type' => is_null($homePage) ? 'create' : 'edit'])
-
-            {{-- Brochure Section --}}
-            <div class="card mt-3" id="brochure-section">
-                <div class="card-header">
-                    <h3 class="card-title">
-                        <i class="ti ti-file-text me-2"></i>
-                        Brochure Section
-                    </h3>
-                    <div class="card-actions">
-                        <span class="badge bg-blue-lt">Optional</span>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        {{-- Current Brochure Preview --}}
-                        @if($homePage && $homePage->brochure_file_url)
-                        <div class="col-12 mb-4">
-                            <label class="form-label text-secondary">Current Brochure</label>
-                            <div class="section-preview">
-                                <div class="d-flex align-items-center p-3 border rounded">
-                                    <div class="me-3">
-                                        <i class="ti ti-file-text text-red" style="font-size: 2.5rem;"></i>
-                                    </div>
-                                    <div class="flex-grow-1">
-                                        <h6 class="mb-1">Project Brochure</h6>
-                                        <small class="text-secondary">PDF File</small>
-                                    </div>
-                                    <div>
-                                        <a href="{{ $homePage->brochure_file_url }}" target="_blank" class="btn btn-sm btn-outline-primary me-2">
-                                            <i class="ti ti-eye me-1"></i> View
-                                        </a>
-                                        <a href="{{ $homePage->brochure_file_url }}" download class="btn btn-sm btn-outline-success">
-                                            <i class="ti ti-download me-1"></i> Download
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        @endif
-
-                        <div class="col-12">
-                            <div class="mb-3">
-                                <label class="form-label">Upload Brochure PDF</label>
-                                <input type="file" class="form-control @error('brochure_file') is-invalid @enderror" 
-                                    name="brochure_file" accept=".pdf" id="brochure-file">
-                                @error('brochure_file')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                                <small class="form-hint">
-                                    @if($homePage && $homePage->brochure_file_url)
-                                        {{-- Kosongkan untuk tetap menggunakan brochure saat ini. --}}
-                                        Leave empty to keep current brochure
-                                    @endif
-                                    Upload a PDF brochure for the project. Maximum size: 20MB. Supported format: PDF
-                                </small>
-                                <div class="mt-2" id="brochure-file-preview"></div>
-                            </div>
-                            
-                            {{-- Brochure Description --}}
-                            {{-- <div class="mb-3">
-                                <div class="alert alert-info">
-                                    <div class="d-flex">
-                                        <div class="me-2">
-                                            <i class="ti ti-info-circle"></i>
-                                        </div>
-                                        <div>
-                                            <h4 class="alert-title">Tips Brochure</h4>
-                                            <div class="text-secondary">
-                                                Brochure akan ditampilkan sebagai download link di halaman home. 
-                                                Pastikan brochure berisi informasi lengkap tentang proyek seperti:
-                                                <ul class="mt-2 mb-0">
-                                                    <li>Denah dan spesifikasi unit</li>
-                                                    <li>Fasilitas dan lokasi</li>
-                                                    <li>Harga dan skema pembayaran</li>
-                                                    <li>Kontak dan informasi pengembang</li>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div> --}}
-                        </div>
-                        
-                        {{-- <div class="col-lg-4">
-                            <div class="card bg-light">
-                                <div class="card-body text-center">
-                                    <i class="ti ti-file-text text-muted mb-3" style="font-size: 4rem;"></i>
-                                    <h5 class="card-title">Brochure Preview</h5>
-                                    <p class="text-secondary small">
-                                        Upload file PDF untuk preview brochure proyek Anda. 
-                                        Pengunjung dapat mengunduh brochure dari halaman home.
-                                    </p>
-                                    @if($homePage && $homePage->brochure_file_url)
-                                    <div class="mt-3">
-                                        <span class="badge bg-success-lt">
-                                            <i class="ti ti-check me-1"></i>
-                                            Brochure tersedia
-                                        </span>
-                                    </div>
-                                    @else
-                                    <div class="mt-3">
-                                        <span class="badge bg-warning-lt">
-                                            <i class="ti ti-alert-triangle me-1"></i>
-                                            Belum ada brochure
-                                        </span>
-                                    </div>
-                                    @endif
-                                </div>
-                            </div>
-                        </div> --}}
-                    </div>
-                </div>
-            </div>
-
-            {{-- About Development Section --}}
-            <div class="card mt-3" id="about-section">
-                <div class="card-header">
-                    <h3 class="card-title">
-                        <i class="ti ti-info-circle me-2"></i>
-                        About Development Section
-                    </h3>
-                    <div class="card-actions">
-                        <span class="badge bg-red-lt">Required</span>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-lg-8">
-                            <div class="row">
-                                <div class="col-12">
-                                    <div class="mb-3">
-                                        <label class="form-label">About Development Title</label>
-                                        <input type="text" class="form-control @error('about_section_title') is-invalid @enderror" 
-                                            name="about_section_title" value="{{ old('about_section_title', $homePage->about_section_title ?? '') }}" 
-                                            placeholder="About development section title">
-                                        @error('about_section_title')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                        <small class="form-hint">Small text that appears above the main about title.</small>
-                                    </div>
-                                </div>
-                                <div class="col-12">
-                                    <div class="mb-3">
-                                        <label class="form-label">About Title <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control @error('about_title') is-invalid @enderror" 
-                                            name="about_title" value="{{ old('about_title', $homePage->about_title ?? '') }}" required
-                                            placeholder="Enter about section title">
-                                        @error('about_title')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                </div>
-                                <div class="col-12">
-                                    <div class="mb-3">
-                                        <label class="form-label">About Description <span class="text-danger">*</span></label>
-                                        <textarea class="form-control @error('about_description') is-invalid @enderror" 
-                                                name="about_description" rows="6" required 
-                                                placeholder="Describe your development in detail">{{ old('about_description', $homePage->about_description ?? '') }}</textarea>
-                                        @error('about_description')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                        <small class="form-hint">Detailed description about your development project and its unique selling points.</small>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label class="form-label">Link Text</label>
-                                        <input type="text" class="form-control @error('about_link_text') is-invalid @enderror" 
-                                            name="about_link_text" value="{{ old('about_link_text', $homePage->about_link_text ?? 'Discover More') }}" 
-                                            placeholder="Link button text">
-                                        @error('about_link_text')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label class="form-label">Link URL</label>
-                                        <input type="url" class="form-control @error('about_link_url') is-invalid @enderror" 
-                                            name="about_link_url" value="{{ old('about_link_url', $homePage->about_link_url ?? '') }}" 
-                                            placeholder="https://example.com">
-                                        @error('about_link_url')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                        <small class="form-hint">Optional. Link to more detailed information.</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-lg-4">
-                            {{-- Current About Image --}}
-                            @if($homePage && $homePage->about_image_url)
-                            <div class="mb-3">
-                                <label class="form-label text-secondary">Current About Image</label>
-                                <div class="section-preview">
-                                    <img src="{{ $homePage->about_image_url }}" class="preview-image">
-                                    <div class="mt-2 d-flex justify-content-between align-items-center">
-                                        <small class="text-secondary fw-medium">About Image</small>
-                                        <a href="{{ $homePage->about_image_url }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                            <i class="ti ti-external-link"></i>
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                            @endif
-
-                            <div class="mb-3">
-                                <label class="form-label">
-                                    About Image 
-                                    @if(!$homePage || !$homePage->about_image_url)
-                                    <span class="text-danger">*</span>
-                                    @endif
-                                </label>
-                                <input type="file" class="form-control @error('about_image') is-invalid @enderror" 
-                                    name="about_image" accept="image/*" 
-                                    {{ !$homePage || !$homePage->about_image_url ? 'required' : '' }} 
-                                    id="about-image">
-                                @error('about_image')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                                <small class="form-hint">
-                                    @if($homePage && $homePage->about_image_url)
-                                        Leave empty to keep current image.
-                                    @endif
-                                    Recommended: 1200x800px, Max: 5MB
-                                </small>
-                                <div class="mt-2" id="about-image-preview"></div>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label class="form-label">About Image Alt Text</label>
-                                <input type="text" class="form-control @error('about_image_alt_text') is-invalid @enderror" 
-                                    name="about_image_alt_text" value="{{ old('about_image_alt_text', $homePage->about_image_alt_text ?? '') }}" 
-                                    placeholder="Describe image for accessibility">
-                                @error('about_image_alt_text')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Features Section --}}
-            <div class="card mt-3" id="features-section">
-                <div class="card-header">
-                    <h3 class="card-title">
-                        <i class="ti ti-star me-2"></i>
-                        Features Section
-                    </h3>
-                    <div class="card-actions">
-                        <span class="badge bg-red-lt">Required</span>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-lg-8">
-                            <div class="row">
-                                <div class="col-12">
-                                    <div class="mb-3">
-                                        <label class="form-label">Features Section Title</label>
-                                        <input type="text" class="form-control @error('features_section_title') is-invalid @enderror" 
-                                               name="features_section_title" value="{{ old('features_section_title', $homePage->features_section_title ?? 'Exclusive Features') }}" 
-                                               placeholder="Features section title">
-                                        @error('features_section_title')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                        <small class="form-hint">Small text that appears above the main features title.</small>
-                                    </div>
-                                </div>
-                                <div class="col-12">
-                                    <div class="mb-3">
-                                        <label class="form-label">Features Title <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control @error('features_title') is-invalid @enderror" 
-                                               name="features_title" value="{{ old('features_title', $homePage->features_title ?? '') }}" required
-                                               placeholder="Enter features section title">
-                                        @error('features_title')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                </div>
-                                <div class="col-12">
-                                    <div class="mb-3">
-                                        <label class="form-label">Features Description</label>
-                                        <textarea class="form-control @error('features_description') is-invalid @enderror" 
-                                                  name="features_description" rows="4" 
-                                                  placeholder="Describe the features section">{{ old('features_description', $homePage->features_description ?? '') }}</textarea>
-                                        @error('features_description')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                        <small class="form-hint">Optional. Brief description about the features.</small>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label class="form-label">Link Text</label>
-                                        <input type="text" class="form-control @error('features_link_text') is-invalid @enderror" 
-                                               name="features_link_text" value="{{ old('features_link_text', $homePage->features_link_text ?? 'Learn More') }}" 
-                                               placeholder="Link button text">
-                                        @error('features_link_text')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label class="form-label">Link URL</label>
-                                        <input type="url" class="form-control @error('features_link_url') is-invalid @enderror" 
-                                               name="features_link_url" value="{{ old('features_link_url', $homePage->features_link_url ?? '') }}" 
-                                               placeholder="https://example.com">
-                                        @error('features_link_url')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-lg-4">
-                            {{-- Current Features Image --}}
-                            @if($homePage && $homePage->features_image_url)
-                            <div class="mb-3">
-                                <label class="form-label text-secondary">Current Features Image</label>
-                                <div class="section-preview">
-                                    <img src="{{ $homePage->features_image_url }}" class="preview-image">
-                                    <div class="mt-2 d-flex justify-content-between align-items-center">
-                                        <small class="text-secondary fw-medium">Features Image</small>
-                                        <a href="{{ $homePage->features_image_url }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                            <i class="ti ti-external-link"></i>
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                            @endif
-
-                            <div class="mb-3">
-                                <label class="form-label">
-                                    Features Image 
-                                    @if(!$homePage || !$homePage->features_image_url)
-                                    <span class="text-danger">*</span>
-                                    @endif
-                                </label>
-                                <input type="file" class="form-control @error('features_image') is-invalid @enderror" 
-                                       name="features_image" accept="image/*" 
-                                       {{ !$homePage || !$homePage->features_image_url ? 'required' : '' }} 
-                                       id="features-image">
-                                @error('features_image')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                                <small class="form-hint">
-                                    @if($homePage && $homePage->features_image_url)
-                                        Leave empty to keep current image.
-                                    @endif
-                                    Recommended: 1200x800px, Max: 5MB
-                                </small>
-                                <div class="mt-2" id="features-image-preview"></div>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label class="form-label">Features Image Alt Text</label>
-                                <input type="text" class="form-control @error('features_image_alt_text') is-invalid @enderror" 
-                                       name="features_image_alt_text" value="{{ old('features_image_alt_text', $homePage->features_image_alt_text ?? '') }}" 
-                                       placeholder="Describe image for accessibility">
-                                @error('features_image_alt_text')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Location Section --}}
-            <div class="card mt-3" id="location-section">
-                <div class="card-header">
-                    <h3 class="card-title">
-                        <i class="ti ti-map-pin me-2"></i>
-                        Location & Accessibility Section
-                    </h3>
-                    <div class="card-actions">
-                        <span class="badge bg-red-lt">Required</span>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-lg-8">
-                            <div class="row">
-                                <div class="col-12">
-                                    <div class="mb-3">
-                                        <label class="form-label">Location Section Title</label>
-                                        <input type="text" class="form-control @error('location_section_title') is-invalid @enderror" 
-                                               name="location_section_title" value="{{ old('location_section_title', $homePage->location_section_title ?? 'Location & Accessibility') }}" 
-                                               placeholder="Location section title">
-                                        @error('location_section_title')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                </div>
-                                <div class="col-12">
-                                    <div class="mb-3">
-                                        <label class="form-label">Location Title <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control @error('location_title') is-invalid @enderror" 
-                                               name="location_title" value="{{ old('location_title', $homePage->location_title ?? '') }}" required
-                                               placeholder="Enter location title">
-                                        @error('location_title')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                </div>
-                                <div class="col-12">
-                                    <div class="mb-3">
-                                        <label class="form-label">Location Description <span class="text-danger">*</span></label>
-                                        <textarea class="form-control @error('location_description') is-invalid @enderror" 
-                                                  name="location_description" rows="6" required 
-                                                  placeholder="Describe the location advantages">{{ old('location_description', $homePage->location_description ?? '') }}</textarea>
-                                        @error('location_description')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                        <small class="form-hint">Highlight location benefits, accessibility, and nearby facilities.</small>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label class="form-label">Link Text</label>
-                                        <input type="text" class="form-control @error('location_link_text') is-invalid @enderror" 
-                                               name="location_link_text" value="{{ old('location_link_text', $homePage->location_link_text ?? 'Get Direction') }}" 
-                                               placeholder="Link button text">
-                                        @error('location_link_text')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label class="form-label">Link URL</label>
-                                        <input type="url" class="form-control @error('location_link_url') is-invalid @enderror" 
-                                               name="location_link_url" value="{{ old('location_link_url', $homePage->location_link_url ?? '') }}" 
-                                               placeholder="https://maps.google.com/...">
-                                        @error('location_link_url')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                        <small class="form-hint">Link to Google Maps or directions.</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-lg-4">
-                            {{-- Current Location Image --}}
-                            @if($homePage && $homePage->location_image_url)
-                            <div class="mb-3">
-                                <label class="form-label text-secondary">Current Location Image</label>
-                                <div class="section-preview">
-                                    <img src="{{ $homePage->location_image_url }}" class="preview-image">
-                                    <div class="mt-2 d-flex justify-content-between align-items-center">
-                                        <small class="text-secondary fw-medium">Location Image</small>
-                                        <a href="{{ $homePage->location_image_url }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                            <i class="ti ti-external-link"></i>
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                            @endif
-
-                            <div class="mb-3">
-                                <label class="form-label">
-                                    Location Image 
-                                    @if(!$homePage || !$homePage->location_image_url)
-                                    <span class="text-danger">*</span>
-                                    @endif
-                                </label>
-                                <input type="file" class="form-control @error('location_image') is-invalid @enderror" 
-                                       name="location_image" accept="image/*" 
-                                       {{ !$homePage || !$homePage->location_image_url ? 'required' : '' }} 
-                                       id="location-image">
-                                @error('location_image')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                                <small class="form-hint">
-                                    @if($homePage && $homePage->location_image_url)
-                                        Leave empty to keep current image.
-                                    @endif
-                                    Recommended: 1200x800px, Max: 5MB
-                                </small>
-                                <div class="mt-2" id="location-image-preview"></div>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label class="form-label">Location Image Alt Text</label>
-                                <input type="text" class="form-control @error('location_image_alt_text') is-invalid @enderror" 
-                                       name="location_image_alt_text" value="{{ old('location_image_alt_text', $homePage->location_image_alt_text ?? '') }}" 
-                                       placeholder="Describe image for accessibility">
-                                @error('location_image_alt_text')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Settings --}}
-            <div class="card mt-3">
-                <div class="card-header">
-                    <h3 class="card-title">
-                        <i class="ti ti-settings me-2"></i>
-                        Settings
-                    </h3>
-                </div>
-                <div class="card-body">
-                    <div class="mb-0">
-                        <label class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" name="status" value="1" 
-                                   {{ old('status', $homePage->is_active ?? true) ? 'checked' : '' }}>
-                            <span class="form-check-label">Active</span>
-                        </label>
-                        <small class="form-hint">Enable home page to be displayed on the website.</small>
-                    </div>
-                </div>
-                <div class="card-footer bg-transparent">
-                    <div class="d-flex justify-content-between align-items-center">
-                        @if($homePage)
-                        <small class="text-secondary">
-                            <i class="ti ti-clock me-1"></i>
-                            Last saved: {{ $homePage->updated_at->format('d M Y, H:i') }}
-                        </small>
-                        @else
-                        <div></div>
-                        @endif
-                        <button type="submit" class="btn btn-primary" id="submit-btn">
-                            <i class="ti ti-device-floppy me-1"></i> 
-                            {{ $homePage ? 'Update' : 'Create' }} Home Page
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </form>
-    </div>
-</div>
-
-{{-- Features Management --}}
-<div class="row g-3 mt-4" id="features-management">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">
-                    <i class="ti ti-star me-2"></i>
-                    Home Features Management
-                </h3>
-                <div class="card-actions">
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="badge bg-blue-lt">{{ $features->count() }} Features</span>
-                        @if($features->count() > 0)
-                        <button type="button" class="btn btn-sm btn-outline-secondary" id="toggle-feature-reorder">
-                            <i class="ti ti-arrows-sort me-1"></i> 
-                            <span id="feature-reorder-text">Reorder</span>
-                        </button>
-                        @endif
-                        <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#add-feature">
-                            <i class="ti ti-plus me-1"></i> Add Feature
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <div class="card-body">
-                @if($features->count() > 0)
-                    <div class="row g-3" id="sortable-features">
-                        @foreach($features as $feature)
-                        <div class="col-md-6 col-lg-4 sortable-feature-item" data-id="{{ $feature->id }}">
-                            <div class="feature-item p-3">
-                                {{-- Reorder Handle --}}
-                                <div class="feature-reorder-handle position-absolute top-0 start-0 m-2 cursor-move bg-secondary text-white rounded p-1" style="display: none; z-index: 10;">
-                                    <i class="ti ti-grip-vertical"></i>
-                                </div>
-
-                                <div class="d-flex justify-content-between align-items-start mb-2">
-                                    <div class="flex-grow-1">
-                                        <div class="d-flex align-items-center mb-2">
-                                            <i class="{{ $feature->icon }} me-2 text-primary fs-4"></i>
-                                            <h5 class="mb-0">{{ $feature->title }}</h5>
-                                        </div>
-                                        <p class="text-secondary small mb-2">{{ $feature->description }}</p>
-                                        <div class="d-flex align-items-center justify-content-between">
-                                            <span class="badge bg-{{ $feature->is_active ? 'green' : 'red' }}-lt">
-                                                {{ $feature->status_text }}
-                                            </span>
-                                            <small class="text-secondary">Order: {{ $feature->order }}</small>
-                                        </div>
-                                    </div>
-                                    <div class="dropdown ms-2">
-                                        <button class="btn btn-sm btn-ghost-secondary" data-bs-toggle="dropdown">
-                                            <i class="ti ti-dots-vertical"></i>
-                                        </button>
-                                        <div class="dropdown-menu dropdown-menu-end">
-                                            <button type="button" class="dropdown-item" 
-                                                    data-bs-toggle="modal" 
-                                                    data-bs-target="#edit-feature"
-                                                    data-id="{{ $feature->id }}"
-                                                    data-icon="{{ $feature->icon }}"
-                                                    data-title="{{ $feature->title }}"
-                                                    data-description="{{ $feature->description }}"
-                                                    data-status="{{ $feature->is_active }}">
-                                                <i class="ti ti-edit me-1"></i> Edit
-                                            </button>
-                                            <button type="button" class="dropdown-item text-danger delete-feature-btn"
-                                                    data-id="{{ $feature->id }}"
-                                                    data-name="{{ $feature->title }}"
-                                                    data-url="{{ route('home-page.features.destroy', $feature) }}">
-                                                <i class="ti ti-trash me-1"></i> Delete
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        @endforeach
-                    </div>
-                @else
-                    <div class="text-center py-5">
-                        <div class="empty">
-                            <div class="empty-icon">
-                                <i class="ti ti-star icon icon-lg text-secondary"></i>
-                            </div>
-                            <p class="empty-title h5">No Features Yet</p>
-                            <p class="empty-subtitle text-secondary">
-                                Add features to showcase unique selling points on your home page.<br>
-                                Features will appear in the "Exclusive Features" section.
-                            </p>
-                            <div class="empty-action">
-                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#add-feature">
-                                    <i class="ti ti-plus me-1"></i> Add First Feature
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                @endif
-            </div>
-        </div>
-    </div>
-</div>
-
-{{-- Featured Units Management --}}
-<div class="row g-3 mt-3" id="featured-units">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">
-                    <i class="ti ti-home me-2"></i>
-                    Featured Units Management
-                </h3>
-                <div class="card-actions">
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="badge bg-green-lt">{{ $featuredUnits->count() }} Units</span>
-                        @if($featuredUnits->count() > 0)
-                        <button type="button" class="btn btn-sm btn-outline-secondary" id="toggle-unit-reorder">
-                            <i class="ti ti-arrows-sort me-1"></i> 
-                            <span id="unit-reorder-text">Reorder</span>
-                        </button>
-                        @endif
-                        @if($availableUnits->count() > 0)
-                        <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#add-featured-unit">
-                            <i class="ti ti-plus me-1"></i> Add Featured Unit
-                        </button>
-                        @endif
-                    </div>
-                </div>
-            </div>
-            <div class="card-body">
-                @if($featuredUnits->count() > 0)
-                    <div class="row g-3" id="sortable-units">
-                        @foreach($featuredUnits as $featuredUnit)
-                        <div class="col-md-6 col-lg-4 sortable-unit-item" data-id="{{ $featuredUnit->id }}">
-                            <div class="unit-item">
-                                {{-- Reorder Handle --}}
-                                <div class="unit-reorder-handle position-absolute top-0 start-0 m-2 cursor-move bg-secondary text-white rounded p-1" style="display: none; z-index: 10;">
-                                    <i class="ti ti-grip-vertical"></i>
-                                </div>
-
-                                <div class="card h-100">
-                                    @if($featuredUnit->unit->main_image_url)
-                                    <img src="{{ $featuredUnit->unit->main_image_url }}" class="card-img-top" style="height: 200px; object-fit: cover;">
-                                    @else
-                                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
-                                        <i class="ti ti-photo text-secondary" style="font-size: 3rem;"></i>
-                                    </div>
-                                    @endif
-                                    <div class="card-body">
-                                        <h5 class="card-title">{{ $featuredUnit->unit->name }}</h5>
-                                        <p class="text-secondary small mb-2">
-                                            <i class="ti ti-building me-1"></i>{{ $featuredUnit->unit->project->name }}
-                                        </p>
-                                        @if($featuredUnit->unit->short_description)
-                                        <p class="card-text text-secondary small">{{ Str::limit($featuredUnit->unit->short_description, 80) }}</p>
-                                        @endif
-                                        
-                                        {{-- Unit Details --}}
-                                        <div class="row g-2 mb-3">
-                                            @if($featuredUnit->unit->bedrooms)
-                                            <div class="col-4">
-                                                <small class="text-secondary">
-                                                    <i class="ti ti-bed me-1"></i>{{ $featuredUnit->unit->bedrooms }} BR
-                                                </small>
-                                            </div>
-                                            @endif
-                                            @if($featuredUnit->unit->bathrooms)
-                                            <div class="col-4">
-                                                <small class="text-secondary">
-                                                    <i class="ti ti-bath me-1"></i>{{ $featuredUnit->unit->bathrooms }} BA
-                                                </small>
-                                            </div>
-                                            @endif
-                                            @if($featuredUnit->unit->carports)
-                                            <div class="col-4">
-                                                <small class="text-secondary">
-                                                    <i class="ti ti-car me-1"></i>{{ $featuredUnit->unit->carports }} CP
-                                                </small>
-                                            </div>
-                                            @endif
-                                        </div>
-
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <span class="badge bg-{{ $featuredUnit->is_active ? 'green' : 'red' }}-lt">
-                                                {{ $featuredUnit->status_text }}
-                                            </span>
-                                            <div class="dropdown">
-                                                <button class="btn btn-sm btn-ghost-secondary" data-bs-toggle="dropdown">
-                                                    <i class="ti ti-dots-vertical"></i>
-                                                </button>
-                                                <div class="dropdown-menu dropdown-menu-end">
-                                                    <a href="{{ route('development.unit.edit', [$featuredUnit->unit->project, $featuredUnit->unit]) }}" class="dropdown-item">
-                                                        <i class="ti ti-external-link me-1"></i> View Unit
-                                                    </a>
-                                                    <button type="button" class="dropdown-item" 
-                                                            data-bs-toggle="modal" 
-                                                            data-bs-target="#edit-featured-unit"
-                                                            data-id="{{ $featuredUnit->id }}"
-                                                            data-unit-id="{{ $featuredUnit->unit_id }}"
-                                                            data-status="{{ $featuredUnit->is_active }}">
-                                                        <i class="ti ti-edit me-1"></i> Edit
-                                                    </button>
-                                                    <button type="button" class="dropdown-item text-danger delete-unit-btn"
-                                                            data-id="{{ $featuredUnit->id }}"
-                                                            data-name="{{ $featuredUnit->unit->name }}"
-                                                            data-url="{{ route('home-page.featured-units.destroy', $featuredUnit) }}">
-                                                        <i class="ti ti-trash me-1"></i> Remove
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <small class="text-secondary d-block mt-2">Order: {{ $featuredUnit->order }}</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        @endforeach
-                    </div>
-                @else
-                    <div class="text-center py-5">
-                        <div class="empty">
-                            <div class="empty-icon">
-                                <i class="ti ti-home icon icon-lg text-secondary"></i>
-                            </div>
-                            <p class="empty-title h5">No Featured Units Yet</p>
-                            <p class="empty-subtitle text-secondary">
-                                Select units to feature on your home page showcase.<br>
-                                @if($availableUnits->count() == 0)
-                                You need to create units first before featuring them.
-                                @else
-                                Featured units will be displayed prominently on the home page.
-                                @endif
-                            </p>
-                            <div class="empty-action">
-                                @if($availableUnits->count() > 0)
-                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#add-featured-unit">
-                                    <i class="ti ti-plus me-1"></i> Add First Featured Unit
-                                </button>
-                                @else
-                                <a href="{{ route('development.project.index') }}" class="btn btn-primary">
-                                    <i class="ti ti-plus me-1"></i> Create Units First
-                                </a>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
-                @endif
-            </div>
-        </div>
-    </div>
-</div>
-
-{{-- Modal Add Feature --}}
-<div class="modal modal-blur fade" id="add-feature" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
-        <form class="modal-content" action="{{ route('home-page.features.store') }}" method="POST">
-            @csrf
-            <div class="modal-header">
-                <h5 class="modal-title">Add New Feature</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="row">
-                    <div class="col-12">
-                        <div class="mb-3">
-                            <label class="form-label">Feature Icon <span class="text-danger">*</span></label>
-                            <div class="input-group">
-                                <span class="input-group-text" id="add-icon-preview">
-                                    <i class="bi bi-question-circle"></i>
-                                </span>
-                                <select class="form-select" name="icon" required id="add-feature-icon">
-                                    <option value="">Select Icon</option>
-                                    @foreach(\App\Models\HomeFeature::getAvailableIcons() as $icon => $label)
-                                    <option value="{{ $icon }}">{{ $label }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <small class="form-hint">Choose an icon that represents your feature.</small>
-                        </div>
-                    </div>
-                    <div class="col-12">
-                        <div class="mb-3">
-                            <label class="form-label">Feature Title <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="title" required 
-                                   placeholder="Enter feature title" maxlength="255">
-                            <small class="form-hint">Keep it concise and descriptive.</small>
-                        </div>
-                    </div>
-                    <div class="col-12">
-                        <div class="mb-3">
-                            <label class="form-label">Feature Description <span class="text-danger">*</span></label>
-                            <textarea class="form-control" name="description" rows="4" required 
-                                      placeholder="Describe this feature in detail"></textarea>
-                            <small class="form-hint">Explain the benefit this feature provides to residents.</small>
-                        </div>
-                    </div>
-                    <div class="col-12">
-                        <label class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" name="status" value="1" checked>
-                            <span class="form-check-label">Active</span>
-                        </label>
-                        <small class="form-hint">Enable this feature to be displayed on the home page.</small>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                <button type="submit" class="btn btn-primary ms-auto">
-                    <i class="ti ti-plus me-1"></i> Add Feature
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-
-{{-- Modal Edit Feature --}}
-<div class="modal modal-blur fade" id="edit-feature" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
-        <form class="modal-content" id="edit-feature-form" method="POST">
-            @csrf
-            @method('PUT')
-            <div class="modal-header">
-                <h5 class="modal-title">Edit Feature</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="row">
-                    <div class="col-12">
-                        <div class="mb-3">
-                            <label class="form-label">Feature Icon <span class="text-danger">*</span></label>
-                            <div class="input-group">
-                                <span class="input-group-text" id="edit-icon-preview">
-                                    <i class="bi bi-question-circle"></i>
-                                </span>
-                                <select class="form-select" id="edit-feature-icon" name="icon" required>
-                                    <option value="">Select Icon</option>
-                                    @foreach(\App\Models\HomeFeature::getAvailableIcons() as $icon => $label)
-                                    <option value="{{ $icon }}">{{ $label }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12">
-                        <div class="mb-3">
-                            <label class="form-label">Feature Title <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="edit-feature-title" name="title" required 
-                                   placeholder="Enter feature title" maxlength="255">
-                        </div>
-                    </div>
-                    <div class="col-12">
-                        <div class="mb-3">
-                            <label class="form-label">Feature Description <span class="text-danger">*</span></label>
-                            <textarea class="form-control" id="edit-feature-description" name="description" rows="4" required 
-                                      placeholder="Describe this feature in detail"></textarea>
-                        </div>
-                    </div>
-                    <div class="col-12">
-                        <label class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" id="edit-feature-status" name="status" value="1">
-                            <span class="form-check-label">Active</span>
-                        </label>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                <button type="submit" class="btn btn-primary ms-auto">
-                    Update Feature
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-
-{{-- Modal Add Featured Unit with Image Selection --}}
-@if($availableUnits->count() > 0)
-<div class="modal modal-blur fade" id="add-featured-unit" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
-        <form class="modal-content" action="{{ route('home-page.featured-units.store') }}" method="POST" id="add-featured-unit-form">
-            @csrf
-            <div class="modal-header">
-                <h5 class="modal-title">Add Featured Unit</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="row">
-                    <div class="col-12">
-                        <div class="mb-3">
-                            <label class="form-label">Select Unit <span class="text-danger">*</span></label>
-                            <small class="form-hint d-block mb-3">Choose one unit to feature on the home page by clicking on the image.</small>
-                            
-                            {{-- Check if there are available units --}}
-                            @php
-                                $nonFeaturedUnits = $availableUnits->filter(function($unit) use ($featuredUnits) {
-                                    return !$featuredUnits->contains('unit_id', $unit->id);
-                                });
-                            @endphp
-                            
-                            @if($nonFeaturedUnits->count() > 0)
-                                <div class="row g-3" id="unit-selection-grid">
-                                    @foreach($nonFeaturedUnits as $unit)
-                                    <div class="col-md-6 col-lg-4">
-                                        <label class="form-imagecheck mb-2 w-100">
-                                            <input name="unit_id" type="radio" value="{{ $unit->id }}" class="form-imagecheck-input" required>
-                                            <span class="form-imagecheck-figure">
-                                                @if($unit->main_image_url)
-                                                <img src="{{ $unit->main_image_url }}" alt="{{ $unit->name }}" class="form-imagecheck-image">
-                                                @else
-                                                <div class="form-imagecheck-image d-flex align-items-center justify-content-center bg-light" style="height: 200px;">
-                                                    <i class="ti ti-photo text-muted" style="font-size: 3rem;"></i>
-                                                </div>
-                                                @endif
-                                                
-                                                {{-- Unit Info Overlay --}}
-                                                <div class="position-absolute bottom-0 start-0 end-0 bg-dark bg-opacity-75 text-white p-2">
-                                                    <h6 class="mb-1 text-white">{{ $unit->name }}</h6>
-                                                    <small class="text-white-50">{{ $unit->project->name }}</small>
-                                                    
-                                                    {{-- Unit Details --}}
-                                                    <div class="row g-1 mt-1">
-                                                        @if($unit->bedrooms)
-                                                        <div class="col-4">
-                                                            <small class="text-white-75">
-                                                                <i class="ti ti-bed me-1"></i>{{ $unit->bedrooms }} BR
-                                                            </small>
-                                                        </div>
-                                                        @endif
-                                                        @if($unit->bathrooms)
-                                                        <div class="col-4">
-                                                            <small class="text-white-75">
-                                                                <i class="ti ti-bath me-1"></i>{{ $unit->bathrooms }} BA
-                                                            </small>
-                                                        </div>
-                                                        @endif
-                                                        @if($unit->carports)
-                                                        <div class="col-4">
-                                                            <small class="text-white-75">
-                                                                <i class="ti ti-car me-1"></i>{{ $unit->carports }}
-                                                            </small>
-                                                        </div>
-                                                        @endif
-                                                    </div>
-                                                </div>
-                                                
-                                                {{-- Selection Indicator --}}
-                                                <div class="position-absolute top-0 end-0 m-2">
-                                                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center selection-indicator" style="width: 24px; height: 24px; opacity: 0;">
-                                                        <i class="ti ti-check" style="font-size: 14px;"></i>
-                                                    </div>
-                                                </div>
-                                            </span>
-                                        </label>
-                                    </div>
-                                    @endforeach
-                                </div>
-                            @else
-                                <div class="text-center py-4">
-                                    <div class="empty">
-                                        <div class="empty-icon">
-                                            <i class="ti ti-home icon icon-lg text-secondary" style="font-size: 3rem;"></i>
-                                        </div>
-                                        <p class="empty-title h6">No Available Units</p>
-                                        <p class="empty-subtitle text-secondary">
-                                            All units are already featured or no units exist yet.
-                                        </p>
-                                    </div>
-                                </div>
-                            @endif
-                        </div>
-                    </div>
-                    
-                    @if($nonFeaturedUnits->count() > 0)
-                    <div class="col-12">
-                        <label class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" name="status" value="1" checked>
-                            <span class="form-check-label">Active</span>
-                        </label>
-                        <small class="form-hint">Enable this unit to be displayed in the featured units section.</small>
+                    @else
+                    <div class="text-secondary">
+                        <i class="ti ti-info-circle me-1"></i>
+                        Configure your homepage SEO settings
                     </div>
                     @endif
+                    
+                    <button type="submit" class="btn btn-primary" id="save-seo-btn">
+                        <i class="ti ti-device-floppy me-1"></i>
+                        {{ $homePageSettings ? 'Update' : 'Save' }} Settings
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+{{-- Banners Section --}}
+<div class="col-12 mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">
+                <i class="ti ti-photo me-2"></i>
+                Homepage Banners
+            </h3>
+            <div class="card-actions">
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#create-banner-modal">
+                        <i class="ti ti-plus me-1"></i> Add Banner
+                    </button>
+                {{-- @if($banners->count() > 0)
+                <span class="badge bg-blue-lt">
+                    <i class="ti ti-photo me-1"></i>
+                    {{ $banners->count() }} {{ $banners->count() === 1 ? 'Banner' : 'Banners' }}
+                </span>
+                @endif --}}
+            </div>
+        </div>
+        <div class="card-body p-0">
+            @if($banners->count() > 0)
+            <div class="row g-3 p-3" id="sortable-container">
+                @foreach($banners as $banner)
+                <div class="col-sm-6 col-md-4 col-lg-3" data-id="{{ $banner->id }}">
+                    <div class="card banner-card h-100 position-relative">
+                        <div class="position-relative">
+                            <img src="{{ $banner->image_url }}" class="card-img-top banner-image" alt="{{ $banner->title_display }}">
+                            
+                            {{-- Order Number --}}
+                            <div class="banner-order">{{ $banner->order }}</div>
+                            
+                            {{-- Status Badge --}}
+                            <div class="banner-status">
+                                @if($banner->is_active)
+                                <span class="badge bg-success text-white">Active</span>
+                                @else
+                                <span class="badge bg-secondary text-white">Inactive</span>
+                                @endif
+                            </div>
+                            
+                            {{-- Drag Handle --}}
+                            @if($banners->count() > 1)
+                            <div class="sortable-handle" title="Drag to reorder">
+                                <i class="ti ti-grip-vertical"></i>
+                            </div>
+                            @endif
+                            
+                            {{-- Overlay --}}
+                            <div class="banner-overlay"></div>
+                            
+                            {{-- Content Preview --}}
+                            @if($banner->title || $banner->subtitle || $banner->has_button)
+                            <div class="banner-content-preview">
+                                @if($banner->title)
+                                <div class="banner-preview-title">{{ $banner->title }}</div>
+                                @endif
+                                @if($banner->subtitle)
+                                <div class="banner-preview-subtitle">{{ Str::limit($banner->subtitle, 50) }}</div>
+                                @endif
+                                @if($banner->has_button)
+                                <span class="banner-preview-button">{{ $banner->button_text }}</span>
+                                @endif
+                            </div>
+                            @endif
+                            
+                            {{-- Actions --}}
+                            <div class="banner-actions">
+                                <div class="btn-list">
+                                    <a href="{{ $banner->image_url }}" target="_blank" class="btn btn-sm btn-warning" title="View Image">
+                                        <i class="ti ti-external-link"></i>
+                                    </a>
+                                    <button type="button" 
+                                            class="btn btn-sm btn-primary edit-banner-btn" 
+                                            data-id="{{ $banner->id }}"
+                                            data-title="{{ $banner->title }}"
+                                            data-subtitle="{{ $banner->subtitle }}"
+                                            data-button-text="{{ $banner->button_text }}"
+                                            data-button-url="{{ $banner->button_url }}"
+                                            data-image-url="{{ $banner->image_url }}"
+                                            data-image-alt="{{ $banner->image_alt_text }}"
+                                            data-is-active="{{ $banner->is_active ? '1' : '0' }}"
+                                            title="Edit Banner">
+                                        <i class="ti ti-edit"></i>
+                                    </button>
+                                    <button type="button" 
+                                            class="btn btn-sm btn-danger delete-btn"
+                                            data-id="{{ $banner->id }}"
+                                            data-name="{{ $banner->title_display }}"
+                                            data-url="{{ route('home-page.banners.destroy', $banner) }}"
+                                            title="Delete Banner">
+                                        <i class="ti ti-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+            @else
+            <div class="empty py-5">
+                <div class="empty-icon">
+                    <i class="ti ti-photo icon icon-lg"></i>
+                </div>
+                <p class="empty-title h3">No banners yet</p>
+                <p class="empty-subtitle text-secondary">
+                    Get started by creating your first homepage banner.<br>
+                    Showcase your best content to welcome visitors.
+                </p>
+                <div class="empty-action">
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#create-banner-modal">
+                        <i class="ti ti-plus me-1"></i> Create First Banner
+                    </button>
+                </div>
+            </div>
+            @endif
+        </div>
+    </div>
+</div>
+
+{{-- Create Banner Modal --}}
+<div class="modal modal-blur fade" id="create-banner-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <form class="modal-content" method="POST" action="{{ route('home-page.banners.store') }}" enctype="multipart/form-data">
+            @csrf
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="ti ti-plus me-2"></i>
+                    Create Homepage Banner
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Banner Image <span class="text-danger">*</span></label>
+                    <input type="file" class="form-control" name="image" accept="image/*" required id="create-image-input">
+                    <small class="form-hint">
+                        <i class="ti ti-info-circle me-1"></i>
+                        Recommended: 1920x800px, Max: 10MB (JPG, PNG, WebP)
+                    </small>
+                    <div class="mt-3" id="create-image-preview"></div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Title (Optional)</label>
+                            <input type="text" class="form-control" name="title" 
+                                   placeholder="e.g., Welcome to Sentul City" id="create-title-input">
+                            <small class="form-hint">
+                                <span id="create-title-count">0</span>/255 characters
+                            </small>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Button Text (Optional)</label>
+                            <input type="text" class="form-control" name="button_text" 
+                                   placeholder="e.g., Learn More" id="create-button-text-input">
+                            <small class="form-hint">
+                                <span id="create-button-text-count">0</span>/100 characters
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Subtitle (Optional)</label>
+                    <textarea class="form-control" name="subtitle" rows="3"
+                              placeholder="Enter banner subtitle or description..."></textarea>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Button URL (Optional)</label>
+                    <input type="url" class="form-control" name="button_url" 
+                           placeholder="https://example.com">
+                    <small class="form-hint">Required if button text is provided</small>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Image Alt Text</label>
+                    <input type="text" class="form-control" name="image_alt_text"
+                           placeholder="Enter image description for accessibility">
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="is_active" value="1" checked>
+                        <span class="form-check-label">Active Status</span>
+                    </label>
+                    <small class="form-hint d-block">
+                        <i class="ti ti-info-circle me-1"></i>
+                        Only active banners will be displayed on the homepage.
+                    </small>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                @if($nonFeaturedUnits->count() > 0)
-                <button type="submit" class="btn btn-primary ms-auto" id="add-featured-unit-submit">
-                    <span class="btn-content">
-                        <i class="ti ti-plus me-1"></i> Add Featured Unit
-                    </span>
-                    <span class="btn-loading d-none">
-                        <span class="spinner-border spinner-border-sm me-2"></span>
-                        Adding...
-                    </span>
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="create-banner-submit-btn">
+                    <i class="ti ti-device-floppy me-1"></i>Create Banner
                 </button>
-                @endif
             </div>
         </form>
     </div>
 </div>
-@endif
 
-{{-- Modal Edit Featured Unit with Image Selection --}}
-<div class="modal modal-blur fade" id="edit-featured-unit" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
-        <form class="modal-content" id="edit-featured-unit-form" method="POST">
+{{-- Edit Banner Modal --}}
+<div class="modal modal-blur fade" id="edit-banner-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <form class="modal-content" method="POST" enctype="multipart/form-data" id="edit-banner-form">
             @csrf
             @method('PUT')
             <div class="modal-header">
-                <h5 class="modal-title">Edit Featured Unit</h5>
+                <h5 class="modal-title">
+                    <i class="ti ti-edit me-2"></i>
+                    Edit Homepage Banner
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
+                <div class="mb-3" id="edit-current-image-section">
+                    <label class="form-label">Current Image</label>
+                    <div class="image-preview-container">
+                        <img id="edit-current-image" src="" class="img-fluid rounded">
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Update Image (Optional)</label>
+                    <input type="file" class="form-control" name="image" accept="image/*" id="edit-image-input">
+                    <small class="form-hint">
+                        <i class="ti ti-info-circle me-1"></i>
+                        Leave empty to keep current image. Max: 10MB (JPG, PNG, WebP)
+                    </small>
+                    <div class="mt-3" id="edit-image-preview"></div>
+                </div>
+                
                 <div class="row">
-                    <div class="col-12">
+                    <div class="col-md-6">
                         <div class="mb-3">
-                            <label class="form-label">Select Unit <span class="text-danger">*</span></label>
-                            <small class="form-hint d-block mb-3">Choose one unit to feature on the home page by clicking on the image.</small>
-                            
-                            <div class="row g-3" id="edit-unit-selection-grid">
-                                @foreach($availableUnits as $unit)
-                                <div class="col-md-6 col-lg-4">
-                                    <label class="form-imagecheck mb-2 w-100">
-                                        <input name="unit_id" type="radio" value="{{ $unit->id }}" class="form-imagecheck-input" required>
-                                        <span class="form-imagecheck-figure">
-                                            @if($unit->main_image_url)
-                                            <img src="{{ $unit->main_image_url }}" alt="{{ $unit->name }}" class="form-imagecheck-image">
-                                            @else
-                                            <div class="form-imagecheck-image d-flex align-items-center justify-content-center bg-light" style="height: 200px;">
-                                                <i class="ti ti-photo text-muted" style="font-size: 3rem;"></i>
-                                            </div>
-                                            @endif
-                                            
-                                            {{-- Unit Info Overlay --}}
-                                            <div class="position-absolute bottom-0 start-0 end-0 bg-dark bg-opacity-75 text-white p-2">
-                                                <h6 class="mb-1 text-white">{{ $unit->name }}</h6>
-                                                <small class="text-white-50">{{ $unit->project->name }}</small>
-                                                
-                                                {{-- Unit Details --}}
-                                                <div class="row g-1 mt-1">
-                                                    @if($unit->bedrooms)
-                                                    <div class="col-4">
-                                                        <small class="text-white-75">
-                                                            <i class="ti ti-bed me-1"></i>{{ $unit->bedrooms }} BR
-                                                        </small>
-                                                    </div>
-                                                    @endif
-                                                    @if($unit->bathrooms)
-                                                    <div class="col-4">
-                                                        <small class="text-white-75">
-                                                            <i class="ti ti-bath me-1"></i>{{ $unit->bathrooms }} BA
-                                                        </small>
-                                                    </div>
-                                                    @endif
-                                                    @if($unit->carports)
-                                                    <div class="col-4">
-                                                        <small class="text-white-75">
-                                                            <i class="ti ti-car me-1"></i>{{ $unit->carports }}
-                                                        </small>
-                                                    </div>
-                                                    @endif
-                                                </div>
-                                            </div>
-                                            
-                                            {{-- Selection Indicator --}}
-                                            <div class="position-absolute top-0 end-0 m-2">
-                                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center selection-indicator" style="width: 24px; height: 24px; opacity: 0;">
-                                                    <i class="ti ti-check" style="font-size: 14px;"></i>
-                                                </div>
-                                            </div>
-                                            
-                                            {{-- Already Featured Badge --}}
-                                            @if($featuredUnits->contains('unit_id', $unit->id))
-                                            <div class="position-absolute top-0 start-0 m-2">
-                                                <span class="badge bg-success text-white">Currently Featured</span>
-                                            </div>
-                                            @endif
-                                        </span>
-                                    </label>
-                                </div>
-                                @endforeach
-                            </div>
+                            <label class="form-label">Title (Optional)</label>
+                            <input type="text" class="form-control" name="title" 
+                                   placeholder="e.g., Welcome to Sentul City" id="edit-title-input">
+                            <small class="form-hint">
+                                <span id="edit-title-count">0</span>/255 characters
+                            </small>
                         </div>
                     </div>
-                    <div class="col-12">
-                        <label class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" id="edit-featured-unit-status" name="status" value="1">
-                            <span class="form-check-label">Active</span>
-                        </label>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Button Text (Optional)</label>
+                            <input type="text" class="form-control" name="button_text" 
+                                   placeholder="e.g., Learn More" id="edit-button-text-input">
+                            <small class="form-hint">
+                                <span id="edit-button-text-count">0</span>/100 characters
+                            </small>
+                        </div>
                     </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Subtitle (Optional)</label>
+                    <textarea class="form-control" name="subtitle" rows="3"
+                              placeholder="Enter banner subtitle or description..." id="edit-subtitle-input"></textarea>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Button URL (Optional)</label>
+                    <input type="url" class="form-control" name="button_url" 
+                           placeholder="https://example.com" id="edit-button-url-input">
+                    <small class="form-hint">Required if button text is provided</small>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Image Alt Text</label>
+                    <input type="text" class="form-control" name="image_alt_text" id="edit-image-alt-input">
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="is_active" value="1" id="edit-is-active">
+                        <span class="form-check-label">Active Status</span>
+                    </label>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                <button type="submit" class="btn btn-primary ms-auto" id="edit-featured-unit-submit">
-                    <span class="btn-content">
-                       Update Featured Unit
-                    </span>
-                    <span class="btn-loading d-none">
-                        <span class="spinner-border spinner-border-sm me-2"></span>
-                        Updating...
-                    </span>
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="edit-banner-submit-btn">
+                    <i class="ti ti-device-floppy me-1"></i>Update Banner
                 </button>
             </div>
         </form>
@@ -1380,679 +489,316 @@
 @endsection
 
 @push('scripts')
-@include('components.alert')
 @include('components.toast')
+@include('components.alert')
 
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+@if(session('success'))
+    <script>
+        showToast('{{ session('success') }}', 'success');
+    </script>
+@endif
+@if(session('error'))
+    <script>
+        showToast('{{ session('error') }}','error');
+    </script>
+@endif
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Smooth scrolling for navigation
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
-                }
-            });
-        });
-
-        // Banner type toggle
-        const bannerTypeSelect = document.getElementById('banner-type-select');
-        const bannerImageSection = document.getElementById('banner-image-section');
-        const bannerVideoSection = document.getElementById('banner-video-section');
-        
-        function toggleBannerType() {
-            if (bannerTypeSelect.value === 'video') {
-                bannerImageSection.style.display = 'none';
-                bannerVideoSection.style.display = 'block';
-            } else {
-                bannerImageSection.style.display = 'block';
-                bannerVideoSection.style.display = 'none';
-            }
-        }
-        
-        bannerTypeSelect.addEventListener('change', toggleBannerType);
-        toggleBannerType(); // Initial call
-
-        // Image preview functionality
-        function setupImagePreview(inputId, previewId) {
-            const input = document.getElementById(inputId);
-            const preview = document.getElementById(previewId);
-            
-            if (input && preview) {
-                input.addEventListener('change', function(e) {
-                    const file = e.target.files[0];
-                    if (file) {
-                        const maxSize = inputId.includes('banner') ? 10 * 1024 * 1024 : 5 * 1024 * 1024;
-                        if (file.size > maxSize) {
-                            showAlert(input, 'danger', `File size too large. Maximum ${inputId.includes('banner') ? '10MB' : '5MB'} allowed.`);
-                            input.value = '';
-                            return;
-                        }
-
-                        if (!file.type.startsWith('image/')) {
-                            showAlert(input, 'danger', 'Please select a valid image file.');
-                            input.value = '';
-                            return;
-                        }
-
-                        const reader = new FileReader();
-                        reader.onload = function(e) {
-                            preview.innerHTML = `
-                                <div class="card image-preview-card">
-                                    <img src="${e.target.result}" class="card-img-top" style="height: 150px; object-fit: cover;">
-                                    <div class="card-body p-3">
-                                        <div class="d-flex justify-content-between align-items-start">
-                                            <div>
-                                                <h5 class="card-title h6 mb-1">${file.name}</h5>
-                                                <small class="text-secondary">
-                                                    ${(file.size / 1024 / 1024).toFixed(2)} MB
-                                                </small>
-                                            </div>
-                                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="clearPreview('${inputId}', '${previewId}')">
-                                                <i class="ti ti-x"></i>
-                                            </button>
-                                        </div>
-                                        <div class="mt-2">
-                                            <small class="text-success">
-                                                <i class="ti ti-check me-1"></i>
-                                                Ready to upload
-                                            </small>
-                                        </div>
-                                    </div>
-                                </div>
-                            `;
-                        };
-                        reader.readAsDataURL(file);
-                    } else {
-                        preview.innerHTML = '';
-                    }
-                });
-            }
-        }
-
-        // Video preview functionality
-        function setupVideoPreview(inputId, previewId) {
-            const input = document.getElementById(inputId);
-            const preview = document.getElementById(previewId);
-            
-            if (input && preview) {
-                input.addEventListener('change', function(e) {
-                    const file = e.target.files[0];
-                    if (file) {
-                        const maxSize = 50 * 1024 * 1024; // 50MB
-                        if (file.size > maxSize) {
-                            showAlert(input, 'danger', 'Video file size too large. Maximum 50MB allowed.');
-                            input.value = '';
-                            return;
-                        }
-
-                        if (!file.type.startsWith('video/')) {
-                            showAlert(input, 'danger', 'Please select a valid video file.');
-                            input.value = '';
-                            return;
-                        }
-
-                        const reader = new FileReader();
-                        reader.onload = function(e) {
-                            preview.innerHTML = `
-                                <div class="card">
-                                    <video class="card-img-top" style="height: 150px; object-fit: cover;" controls>
-                                        <source src="${e.target.result}" type="${file.type}">
-                                        Your browser does not support the video tag.
-                                    </video>
-                                    <div class="card-body p-3">
-                                        <div class="d-flex justify-content-between align-items-start">
-                                            <div>
-                                                <h5 class="card-title h6 mb-1">${file.name}</h5>
-                                                <small class="text-secondary">
-                                                    ${(file.size / 1024 / 1024).toFixed(2)} MB
-                                                </small>
-                                            </div>
-                                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="clearPreview('${inputId}', '${previewId}')">
-                                                <i class="ti ti-x"></i>
-                                            </button>
-                                        </div>
-                                        <div class="mt-2">
-                                            <small class="text-success">
-                                                <i class="ti ti-check me-1"></i>
-                                                Ready to upload
-                                            </small>
-                                        </div>
-                                    </div>
-                                </div>
-                            `;
-                        };
-                        reader.readAsDataURL(file);
-                    } else {
-                        preview.innerHTML = '';
-                    }
-                });
-            }
-        }
-
-        // Clear preview function
-        window.clearPreview = function(inputId, previewId) {
-            document.getElementById(inputId).value = '';
-            document.getElementById(previewId).innerHTML = '';
-        };
-
-        // Setup previews for all inputs
-        setupImagePreview('banner-image', 'banner-image-preview');
-        setupVideoPreview('banner-video', 'banner-video-preview');
-        setupImagePreview('about-image', 'about-image-preview');
-        setupImagePreview('features-image', 'features-image-preview');
-        setupImagePreview('location-image', 'location-image-preview');
-
-        function setupPdfPreview(inputId, previewId) {
-            const input = document.getElementById(inputId);
-            const preview = document.getElementById(previewId);
-            
-            if (input && preview) {
-                input.addEventListener('change', function(e) {
-                    const file = e.target.files[0];
-                    if (file) {
-                        const maxSize = 20 * 1024 * 1024; // 20MB
-                        if (file.size > maxSize) {
-                            showAlert(input, 'danger', 'Ukuran file PDF terlalu besar. Maksimal 20MB diizinkan.');
-                            input.value = '';
-                            return;
-                        }
-
-                        if (file.type !== 'application/pdf') {
-                            showAlert(input, 'danger', 'Pilih file PDF yang valid.');
-                            input.value = '';
-                            return;
-                        }
-
-                        preview.innerHTML = `
-                            <div class="card">
-                                <div class="card-body p-3">
-                                    <div class="d-flex align-items-center">
-                                        <div class="me-3">
-                                            <i class="ti ti-file-text text-red" style="font-size: 2rem;"></i>
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <h6 class="mb-1">${file.name}</h6>
-                                            <small class="text-secondary">
-                                                ${(file.size / 1024 / 1024).toFixed(2)} MB • PDF File
-                                            </small>
-                                            <div class="mt-2">
-                                                <small class="text-success">
-                                                    <i class="ti ti-check me-1"></i>
-                                                    Ready to upload
-                                                </small>
-                                            </div>
-                                        </div>
-                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="clearPreview('${inputId}', '${previewId}')">
-                                            <i class="ti ti-x"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                    } else {
-                        preview.innerHTML = '';
-                    }
-                });
-            }
-        }
-
-        setupPdfPreview('brochure-file', 'brochure-file-preview');
-
-        // Form submission loading state
-        const form = document.getElementById('home-page-form');
-        const submitBtn = document.getElementById('submit-btn');
-        
-        if (form && submitBtn) {
-            form.addEventListener('submit', function() {
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
-                form.classList.add('loading');
-            });
-        }
-
-        // Icon preview functionality for Add Feature Modal
-        const addFeatureIconSelect = document.getElementById('add-feature-icon');
-        const addIconPreview = document.getElementById('add-icon-preview');
-
-        if (addFeatureIconSelect && addIconPreview) {
-            addFeatureIconSelect.addEventListener('change', function() {
-                const selectedIcon = this.value;
-                if (selectedIcon) {
-                    addIconPreview.innerHTML = `<i class="${selectedIcon}"></i>`;
-                } else {
-                    addIconPreview.innerHTML = '<i class="bi bi-question-circle"></i>';
-                }
-            });
-        }
-
-        // Icon preview functionality for Edit Feature Modal
-        const editFeatureIconSelect = document.getElementById('edit-feature-icon');
-        const editIconPreview = document.getElementById('edit-icon-preview');
-
-        if (editFeatureIconSelect && editIconPreview) {
-            editFeatureIconSelect.addEventListener('change', function() {
-                const selectedIcon = this.value;
-                if (selectedIcon) {
-                    editIconPreview.innerHTML = `<i class="${selectedIcon}"></i>`;
-                } else {
-                    editIconPreview.innerHTML = '<i class="bi bi-question-circle"></i>';
-                }
-            });
-        }
-
-        // Icon preview in select
-        const iconSelects = document.querySelectorAll('#add-feature-icon, #edit-feature-icon');
-        iconSelects.forEach(select => {
-            select.addEventListener('change', function() {
-                const selectedOption = this.options[this.selectedIndex];
-                if (selectedOption.value) {
-                    // You could add icon preview here if needed
-                }
-            });
-        });
-
-        // Handle Edit Feature Modal
-        const editFeatureModal = document.getElementById('edit-feature');
-        if (editFeatureModal) {
-            editFeatureModal.addEventListener('show.bs.modal', function (event) {
-                const button = event.relatedTarget;
-                const id = button.getAttribute('data-id');
-                const icon = button.getAttribute('data-icon');
-                const title = button.getAttribute('data-title');
-                const description = button.getAttribute('data-description');
-                const status = button.getAttribute('data-status') === '1';
-
-                // Update form action
-                const form = document.getElementById('edit-feature-form');
-                form.action = `{{ url('home-page/features') }}/${id}`;
-
-                // Fill form fields
-                document.getElementById('edit-feature-icon').value = icon;
-                document.getElementById('edit-feature-title').value = title;
-                document.getElementById('edit-feature-description').value = description;
-                document.getElementById('edit-feature-status').checked = status;
-                
-                // Update icon preview
-                if (icon && editIconPreview) {
-                    editIconPreview.innerHTML = `<i class="${icon}"></i>`;
-                }
-            });
-        }
-
-        // Handle Edit Featured Unit Modal
-        const editFeaturedUnitModal = document.getElementById('edit-featured-unit');
-        if (editFeaturedUnitModal) {
-            editFeaturedUnitModal.addEventListener('show.bs.modal', function (event) {
-                const button = event.relatedTarget;
-                const id = button.getAttribute('data-id');
-                const unitId = button.getAttribute('data-unit-id');
-                const status = button.getAttribute('data-status') === '1';
-
-                // Update form action
-                const form = document.getElementById('edit-featured-unit-form');
-                form.action = `{{ url('home-page/featured-units') }}/${id}`;
-
-                // Fill form fields
-                const unitRadio = document.querySelector(`#edit-featured-unit input[name="unit_id"][value="${unitId}"]`);
-                if (unitRadio) {
-                    unitRadio.checked = true;
-                    // Trigger change event to show selection
-                    unitRadio.dispatchEvent(new Event('change'));
-                }
-                
-                document.getElementById('edit-featured-unit-status').checked = status;
-            });
-        }
-
-        // Handle Delete Feature
-        document.addEventListener('click', function(e) {
-            if (e.target.classList.contains('delete-feature-btn') || e.target.closest('.delete-feature-btn')) {
-                e.preventDefault();
-                
-                const button = e.target.classList.contains('delete-feature-btn') ? e.target : e.target.closest('.delete-feature-btn');
-                const itemName = button.getAttribute('data-name');
-                const deleteUrl = button.getAttribute('data-url');
-                
-                // Update modal content
-                const deleteForm = document.getElementById('delete-form');
-                const deleteMessage = document.getElementById('delete-message');
-                
-                if (deleteForm && deleteMessage) {
-                    deleteForm.action = deleteUrl;
-                    deleteMessage.innerHTML = `Do you really want to delete feature "<strong>${itemName}</strong>"? This process cannot be undone.`;
-                    
-                    // Show modal
-                    const deleteModal = new bootstrap.Modal(document.getElementById('delete-modal'));
-                    deleteModal.show();
-                }
-            }
-        });
-
-        // Handle Delete Featured Unit
-        document.addEventListener('click', function(e) {
-            if (e.target.classList.contains('delete-unit-btn') || e.target.closest('.delete-unit-btn')) {
-                e.preventDefault();
-                
-                const button = e.target.classList.contains('delete-unit-btn') ? e.target : e.target.closest('.delete-unit-btn');
-                const itemName = button.getAttribute('data-name');
-                const deleteUrl = button.getAttribute('data-url');
-                
-                // Update modal content
-                const deleteForm = document.getElementById('delete-form');
-                const deleteMessage = document.getElementById('delete-message');
-                
-                if (deleteForm && deleteMessage) {
-                    deleteForm.action = deleteUrl;
-                    deleteMessage.innerHTML = `Do you really want to remove unit "<strong>${itemName}</strong>" from featured units? This process cannot be undone.`;
-                    
-                    // Show modal
-                    const deleteModal = new bootstrap.Modal(document.getElementById('delete-modal'));
-                    deleteModal.show();
-                }
-            }
-        });
-
-        // Feature Reorder functionality
-        let featureSortable = null;
-        let isFeatureReorderMode = false;
-        
-        const toggleFeatureReorderBtn = document.getElementById('toggle-feature-reorder');
-        const featureReorderText = document.getElementById('feature-reorder-text');
-        const featureContainer = document.getElementById('sortable-features');
-        
-        if (toggleFeatureReorderBtn && featureContainer) {
-            toggleFeatureReorderBtn.addEventListener('click', function() {
-                isFeatureReorderMode = !isFeatureReorderMode;
-                
-                if (isFeatureReorderMode) {
-                    enableFeatureReorderMode();
-                } else {
-                    disableFeatureReorderMode();
-                }
-            });
-        }
-
-        function enableFeatureReorderMode() {
-            const reorderHandles = document.querySelectorAll('.feature-reorder-handle');
-            reorderHandles.forEach(handle => handle.style.display = 'block');
-            
-            if (featureContainer) featureContainer.classList.add('feature-reorder-mode');
-            
-            if (toggleFeatureReorderBtn) {
-                toggleFeatureReorderBtn.classList.remove('btn-outline-secondary');
-                toggleFeatureReorderBtn.classList.add('btn-success');
-            }
-            if (featureReorderText) featureReorderText.textContent = 'Done';
-            
-            const icon = toggleFeatureReorderBtn?.querySelector('i');
-            if (icon) icon.className = 'ti ti-check me-1';
-            
-            featureSortable = new Sortable(featureContainer, {
-                handle: '.feature-reorder-handle',
-                animation: 150,
-                ghostClass: 'sortable-feature-ghost',
-                chosenClass: 'sortable-feature-chosen',
-                dragClass: 'sortable-feature-drag',
-                onEnd: function(evt) {
-                    updateFeatureOrder();
-                }
-            });
-            
-            showFeatureReorderInstructions();
-        }
-
-        function disableFeatureReorderMode() {
-            const reorderHandles = document.querySelectorAll('.feature-reorder-handle');
-            reorderHandles.forEach(handle => handle.style.display = 'none');
-            
-            if (featureContainer) featureContainer.classList.remove('feature-reorder-mode');
-            
-            if (toggleFeatureReorderBtn) {
-                toggleFeatureReorderBtn.classList.remove('btn-success');
-                toggleFeatureReorderBtn.classList.add('btn-outline-secondary');
-            }
-            if (featureReorderText) featureReorderText.textContent = 'Reorder';
-            
-            const icon = toggleFeatureReorderBtn?.querySelector('i');
-            if (icon) icon.className = 'ti ti-arrows-sort me-1';
-            
-            if (featureSortable) {
-                featureSortable.destroy();
-                featureSortable = null;
-            }
-            
-            hideFeatureReorderInstructions();
-        }
-
-        function updateFeatureOrder() {
-            const items = document.querySelectorAll('.sortable-feature-item');
-            const orderData = [];
-            
-            items.forEach((item, index) => {
-                const id = item.getAttribute('data-id');
-                orderData.push({
-                    id: id,
-                    order: index + 1
-                });
-            });
-            
-            fetch('{{ route('home-page.features.reorder') }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                },
-                body: JSON.stringify({
-                    orders: orderData
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showToast('Feature order updated successfully', 'success');
-                } else {
-                    showToast('Failed to update feature order', 'error');
-                    setTimeout(() => location.reload(), 1000);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showToast('Failed to update feature order', 'error');
-                setTimeout(() => location.reload(), 1000);
-            });
-        }
-
-        function showFeatureReorderInstructions() {
-            const instruction = document.createElement('div');
-            instruction.id = 'feature-reorder-instruction';
-            instruction.className = 'alert alert-info alert-dismissible mb-3';
-            instruction.innerHTML = `
-                <div class="d-flex">
-                    <div>
-                        <h4>Feature Reorder Mode Active</h4>
-                        Drag the <i class="ti ti-grip-vertical"></i> handle to reorder features. Editing options are disabled during reorder mode.
-                    </div>
-                </div>
-            `;
-            
-            if (featureContainer && featureContainer.parentElement) {
-                featureContainer.parentElement.insertBefore(instruction, featureContainer);
-            }
-        }
-
-        function hideFeatureReorderInstructions() {
-            const instruction = document.getElementById('feature-reorder-instruction');
-            if (instruction) {
-                instruction.remove();
-            }
-        }
-
-        // Featured Unit Reorder functionality
-        let unitSortable = null;
-        let isUnitReorderMode = false;
-        
-        const toggleUnitReorderBtn = document.getElementById('toggle-unit-reorder');
-        const unitReorderText = document.getElementById('unit-reorder-text');
-        const unitContainer = document.getElementById('sortable-units');
-        
-        if (toggleUnitReorderBtn && unitContainer) {
-            toggleUnitReorderBtn.addEventListener('click', function() {
-                isUnitReorderMode = !isUnitReorderMode;
-                
-                if (isUnitReorderMode) {
-                    enableUnitReorderMode();
-                } else {
-                    disableUnitReorderMode();
-                }
-            });
-        }
-
-        function enableUnitReorderMode() {
-            const reorderHandles = document.querySelectorAll('.unit-reorder-handle');
-            reorderHandles.forEach(handle => handle.style.display = 'block');
-            
-            if (unitContainer) unitContainer.classList.add('unit-reorder-mode');
-            
-            if (toggleUnitReorderBtn) {
-                toggleUnitReorderBtn.classList.remove('btn-outline-secondary');
-                toggleUnitReorderBtn.classList.add('btn-success');
-            }
-            if (unitReorderText) unitReorderText.textContent = 'Done';
-            
-            const icon = toggleUnitReorderBtn?.querySelector('i');
-            if (icon) icon.className = 'ti ti-check me-1';
-            
-            unitSortable = new Sortable(unitContainer, {
-                handle: '.unit-reorder-handle',
-                animation: 150,
-                ghostClass: 'sortable-unit-ghost',
-                chosenClass: 'sortable-unit-chosen',
-                dragClass: 'sortable-unit-drag',
-                onEnd: function(evt) {
-                    updateUnitOrder();
-                }
-            });
-            
-            showUnitReorderInstructions();
-        }
-
-        function disableUnitReorderMode() {
-            const reorderHandles = document.querySelectorAll('.unit-reorder-handle');
-            reorderHandles.forEach(handle => handle.style.display = 'none');
-            
-            if (unitContainer) unitContainer.classList.remove('unit-reorder-mode');
-            
-            if (toggleUnitReorderBtn) {
-                toggleUnitReorderBtn.classList.remove('btn-success');
-                toggleUnitReorderBtn.classList.add('btn-outline-secondary');
-            }
-            if (unitReorderText) unitReorderText.textContent = 'Reorder';
-            
-            const icon = toggleUnitReorderBtn?.querySelector('i');
-            if (icon) icon.className = 'ti ti-arrows-sort me-1';
-            
-            if (unitSortable) {
-                unitSortable.destroy();
-                unitSortable = null;
-            }
-            
-            hideUnitReorderInstructions();
-        }
-
-        function updateUnitOrder() {
-            const items = document.querySelectorAll('.sortable-unit-item');
-            const orderData = [];
-            
-            items.forEach((item, index) => {
-                const id = item.getAttribute('data-id');
-                orderData.push({
-                    id: id,
-                    order: index + 1
-                });
-            });
-            
-            fetch('{{ route('home-page.featured-units.reorder') }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                },
-                body: JSON.stringify({
-                    orders: orderData
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showToast('Featured unit order updated successfully', 'success');
-                } else {
-                    showToast('Failed to update featured unit order', 'error');
-                    setTimeout(() => location.reload(), 1000);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showToast('Failed to update featured unit order', 'error');
-                setTimeout(() => location.reload(), 1000);
-            });
-        }
-
-        function showUnitReorderInstructions() {
-            const instruction = document.createElement('div');
-            instruction.id = 'unit-reorder-instruction';
-            instruction.className = 'alert alert-info alert-dismissible mb-3';
-            instruction.innerHTML = `
-                <div class="d-flex">
-                    <div>
-                        <h4>Featured Unit Reorder Mode Active</h4>
-                        Drag the <i class="ti ti-grip-vertical"></i> handle to reorder featured units. Editing options are disabled during reorder mode.
-                    </div>
-                </div>
-            `;
-            
-            if (unitContainer && unitContainer.parentElement) {
-                unitContainer.parentElement.insertBefore(instruction, unitContainer);
-            }
-        }
-
-        function hideUnitReorderInstructions() {
-            const instruction = document.getElementById('unit-reorder-instruction');
-            if (instruction) {
-                instruction.remove();
-            }
-        }
-
-        // Reset modal forms
-        const addFeatureModal = document.getElementById('add-feature');
-        if (addFeatureModal) {
-            addFeatureModal.addEventListener('show.bs.modal', function () {
-                const form = addFeatureModal.querySelector('form');
-                if (form) {
-                    form.reset();
-                    const statusInput = form.querySelector('input[name="status"]');
-                    if (statusInput) statusInput.checked = true;
-                }
-            });
-        }
-
-        const addUnitModal = document.getElementById('add-featured-unit');
-        if (addUnitModal) {
-            addUnitModal.addEventListener('show.bs.modal', function () {
-                const form = addUnitModal.querySelector('form');
-                if (form) {
-                    form.reset();
-                    const statusInput = form.querySelector('input[name="status"]');
-                    if (statusInput) statusInput.checked = true;
-                }
-            });
-        }
+    document.addEventListener("DOMContentLoaded", function () {
+        setupSortable();
+        setupModals();
+        setupCharacterCounters();
+        setupImagePreviews();
+        setupFormSubmissions();
     });
+
+    function setupSortable() {
+        @if($banners->count() > 1)
+        const sortableContainer = document.getElementById('sortable-container');
+        if (sortableContainer) {
+            new Sortable(sortableContainer, {
+                handle: '.sortable-handle',
+                animation: 150,
+                ghostClass: 'sortable-ghost',
+                chosenClass: 'sortable-chosen',
+                onStart: function(evt) {
+                    // Add visual feedback when dragging starts
+                    evt.item.style.opacity = '0.7';
+                },
+                onEnd: function(evt) {
+                    // Reset visual feedback
+                    evt.item.style.opacity = '1';
+                    
+                    const orders = [];
+                    const items = sortableContainer.children;
+                    
+                    Array.from(items).forEach((item, index) => {
+                        const itemId = item.getAttribute('data-id');
+                        if (itemId) {
+                            orders.push({
+                                id: itemId,
+                                order: index + 1
+                            });
+                        }
+                    });
+                    
+                    // Update visual order numbers immediately
+                    updateVisualOrderNumbers();
+                    
+                    // Send to server
+                    updateBannerOrder(orders);
+                }
+            });
+        }
+        @endif
+    }
+
+    function updateBannerOrder(orders) {
+        fetch('{{ route('home-page.banners.update-order') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({ orders: orders })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update visual order numbers immediately
+                updateVisualOrderNumbers();
+                showToast(data.message, 'success');
+            } else {
+                showToast(data.message, 'error');
+                location.reload();
+            }
+        })
+        .catch(error => {
+            showToast('Failed to update banner order', 'error');
+            location.reload();
+        });
+    }
+
+    function updateVisualOrderNumbers() {
+        const sortableContainer = document.getElementById('sortable-container');
+        if (sortableContainer) {
+            const items = sortableContainer.children;
+            Array.from(items).forEach((item, index) => {
+                const orderElement = item.querySelector('.banner-order');
+                if (orderElement) {
+                    orderElement.textContent = index + 1;
+                }
+            });
+        }
+    }
+
+    function setupModals() {
+        // Edit banner button handler
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('edit-banner-btn') || e.target.closest('.edit-banner-btn')) {
+                const button = e.target.classList.contains('edit-banner-btn') ? e.target : e.target.closest('.edit-banner-btn');
+                const bannerId = button.getAttribute('data-id');
+                
+                document.getElementById('edit-banner-form').action = `{{ url('home-page/banners') }}/${bannerId}`;
+                document.getElementById('edit-title-input').value = button.getAttribute('data-title') || '';
+                document.getElementById('edit-subtitle-input').value = button.getAttribute('data-subtitle') || '';
+                document.getElementById('edit-button-text-input').value = button.getAttribute('data-button-text') || '';
+                document.getElementById('edit-button-url-input').value = button.getAttribute('data-button-url') || '';
+                document.getElementById('edit-image-alt-input').value = button.getAttribute('data-image-alt') || '';
+                document.getElementById('edit-is-active').checked = button.getAttribute('data-is-active') === '1';
+                document.getElementById('edit-current-image').src = button.getAttribute('data-image-url');
+                
+                // Update character counters
+                updateCharacterCounter('edit-title-input', 'edit-title-count');
+                updateCharacterCounter('edit-button-text-input', 'edit-button-text-count');
+                
+                const modal = new bootstrap.Modal(document.getElementById('edit-banner-modal'));
+                modal.show();
+            }
+        });
+
+        // Reset modals when closed
+        document.getElementById('create-banner-modal').addEventListener('hidden.bs.modal', function() {
+            const form = this.querySelector('form');
+            form.reset();
+            document.getElementById('create-image-preview').innerHTML = '';
+            document.getElementById('create-title-count').textContent = '0';
+            document.getElementById('create-button-text-count').textContent = '0';
+            resetSubmitButton('create-banner-submit-btn', 'Create Banner');
+        });
+
+        document.getElementById('edit-banner-modal').addEventListener('hidden.bs.modal', function() {
+            const form = document.getElementById('edit-banner-form');
+            form.reset();
+            document.getElementById('edit-image-preview').innerHTML = '';
+            resetSubmitButton('edit-banner-submit-btn', 'Update Banner');
+        });
+    }
+
+    function setupCharacterCounters() {
+        setupCharacterCounter('create-title-input', 'create-title-count', 255);
+        setupCharacterCounter('create-button-text-input', 'create-button-text-count', 100);
+        setupCharacterCounter('edit-title-input', 'edit-title-count', 255);
+        setupCharacterCounter('edit-button-text-input', 'edit-button-text-count', 100);
+    }
+
+    function setupCharacterCounter(inputId, countId, maxLength) {
+        const input = document.getElementById(inputId);
+        const counter = document.getElementById(countId);
+        
+        if (input && counter) {
+            input.addEventListener('input', function() {
+                updateCharacterCounter(inputId, countId);
+            });
+        }
+    }
+
+    function updateCharacterCounter(inputId, countId) {
+        const input = document.getElementById(inputId);
+        const counter = document.getElementById(countId);
+        
+        if (input && counter) {
+            const currentLength = input.value.length;
+            counter.textContent = currentLength;
+            
+            const maxLength = inputId.includes('title') ? 255 : 100;
+            const percentage = (currentLength / maxLength) * 100;
+            const parent = counter.parentElement;
+            
+            if (percentage > 90) {
+                parent.classList.add('text-danger');
+                parent.classList.remove('text-warning');
+            } else if (percentage > 80) {
+                parent.classList.add('text-warning');
+                parent.classList.remove('text-danger');
+            } else {
+                parent.classList.remove('text-warning', 'text-danger');
+            }
+        }
+    }
+
+    function setupImagePreviews() {
+        const createImageInput = document.getElementById('create-image-input');
+        const editImageInput = document.getElementById('edit-image-input');
+        
+        if (createImageInput) {
+            createImageInput.addEventListener('change', function(e) {
+                handleImagePreview(e, 'create-image-preview', createImageInput, 10);
+            });
+        }
+        
+        if (editImageInput) {
+            editImageInput.addEventListener('change', function(e) {
+                handleImagePreview(e, 'edit-image-preview', editImageInput, 10);
+            });
+        }
+    }
+
+    function handleImagePreview(event, previewId, inputElement, maxSizeMB) {
+        const file = event.target.files[0];
+        const previewContainer = document.getElementById(previewId);
+        
+        if (file) {
+            const maxSize = maxSizeMB * 1024 * 1024;
+            if (file.size > maxSize) {
+                showAlert(inputElement, 'danger', `File size too large. Maximum ${maxSizeMB}MB allowed.`);
+                inputElement.value = '';
+                return;
+            }
+
+            if (!file.type.startsWith('image/')) {
+                showAlert(inputElement, 'danger', 'Please select a valid image file.');
+                inputElement.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewContainer.innerHTML = `
+                    <div class="card">
+                        <img src="${e.target.result}" class="card-img-top" style="height: 200px; object-fit: cover;">
+                        <div class="card-body p-3">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="card-title mb-1">${file.name}</h6>
+                                    <small class="text-secondary">
+                                        ${(file.size / 1024 / 1024).toFixed(2)} MB
+                                    </small>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="clearImagePreview('${previewId}', '${inputElement.id}')">
+                                    <i class="ti ti-x"></i>
+                                </button>
+                            </div>
+                            <div class="mt-2">
+                                <small class="text-success">
+                                    <i class="ti ti-check me-1"></i>
+                                    Ready to upload
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            };
+            reader.readAsDataURL(file);
+        } else {
+            previewContainer.innerHTML = '';
+        }
+    }
+
+    function setupFormSubmissions() {
+        // SEO Form
+        const seoForm = document.getElementById('seo-form');
+        const saveSeoBtn = document.getElementById('save-seo-btn');
+        
+        if (seoForm && saveSeoBtn) {
+            seoForm.addEventListener('submit', function(e) {
+                saveSeoBtn.disabled = true;
+                saveSeoBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
+            });
+        }
+
+        // Create Banner Form
+        const createBannerForm = document.querySelector('#create-banner-modal form');
+        const createBannerSubmitBtn = document.getElementById('create-banner-submit-btn');
+
+        if (createBannerForm && createBannerSubmitBtn) {
+            createBannerForm.addEventListener('submit', function(e) {
+                const imageInput = document.getElementById('create-image-input');
+                if (!imageInput.files.length) {
+                    e.preventDefault();
+                    showAlert(imageInput, 'danger', 'Please select an image for the banner.');
+                    return false;
+                }
+
+                createBannerSubmitBtn.disabled = true;
+                createBannerSubmitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating...';
+            });
+        }
+
+        // Edit Banner Form
+        const editBannerForm = document.getElementById('edit-banner-form');
+        const editBannerSubmitBtn = document.getElementById('edit-banner-submit-btn');
+
+        if (editBannerForm && editBannerSubmitBtn) {
+            editBannerForm.addEventListener('submit', function(e) {
+                editBannerSubmitBtn.disabled = true;
+                editBannerSubmitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Updating...';
+            });
+        }
+    }
+
+    function resetSubmitButton(buttonId, originalText) {
+        const button = document.getElementById(buttonId);
+        if (button) {
+            button.disabled = false;
+            button.innerHTML = `<i class="ti ti-device-floppy me-1"></i>${originalText}`;
+        }
+    }
+
+    // Clear image preview function
+    window.clearImagePreview = function(previewId, inputId) {
+        document.getElementById(inputId).value = '';
+        document.getElementById(previewId).innerHTML = '';
+    };
 </script>
 @endpush
