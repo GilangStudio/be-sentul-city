@@ -100,6 +100,14 @@
         grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
         gap: 1rem;
     }
+
+    .bg-primary-subtle {
+        background-color: rgba(var(--tblr-primary-rgb), 0.1) !important;
+    }
+
+    .bg-secondary-subtle {
+        background-color: rgba(var(--tblr-secondary-rgb), 0.1) !important;
+    }
 </style>
 @endpush
 
@@ -291,46 +299,115 @@
                             </div>
                         </div>
                         
-                        {{-- Company Logo Section --}}
+                        {{-- Company Logos Section --}}
                         <div class="col-12">
-                            <div class="row">
-                                @if($aboutPage && $aboutPage->company_logo_url)
-                                <div class="col-md-3">
-                                    <div class="mb-3">
-                                        <label class="form-label">Current Logo</label>
-                                        <div class="logo-preview">
-                                            <img src="{{ $aboutPage->company_logo_url }}" class="logo-image" alt="Current Logo">
+                            <div class="mb-4">
+                                
+                                {{-- Header Logo --}}
+                                <div class="card border-0 shadow-sm mb-3">
+                                    <div class="card-header bg-primary-subtle d-flex justify-content-between align-items-center">
+                                        <h6 class="card-title mb-0">
+                                            <i class="ti ti-layout-navbar me-2"></i>
+                                            Header Logo
+                                        </h6>
+                                        <small class="text-secondary">Used in website navigation and header sections</small>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            @if($aboutPage && $aboutPage->company_logo_header_url)
+                                            <div class="col-md-3">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Current Header Logo</label>
+                                                    <div class="logo-preview">
+                                                        <img src="{{ $aboutPage->company_logo_header_url }}" class="logo-image" alt="Current Header Logo">
+                                                    </div>
+                                                    <small class="text-secondary mt-1 d-block text-center">
+                                                        <i class="ti ti-info-circle me-1"></i>
+                                                        Current header logo
+                                                    </small>
+                                                </div>
+                                            </div>
+                                            @endif
+                                            
+                                            <div class="{{ $aboutPage && $aboutPage->company_logo_header_url ? 'col-md-9' : 'col-12' }}">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Header Logo</label>
+                                                    <input type="file" class="form-control @error('company_logo_header') is-invalid @enderror" 
+                                                           name="company_logo_header" accept="image/*" id="company-logo-header-input">
+                                                    @error('company_logo_header')
+                                                        <div class="invalid-feedback">{{ $message }}</div>
+                                                    @enderror
+                                                    <small class="form-hint">
+                                                        Optional. Recommended: 400x120px, Max: 2MB (JPG, PNG, WebP, SVG)
+                                                    </small>
+                                                    <div class="mt-3" id="company-logo-header-preview"></div>
+                                                </div>
+                                                
+                                                <div class="mb-3">
+                                                    <label class="form-label">Header Logo Alt Text</label>
+                                                    <input type="text" class="form-control @error('company_logo_header_alt_text') is-invalid @enderror" 
+                                                           name="company_logo_header_alt_text" value="{{ old('company_logo_header_alt_text', $aboutPage->company_logo_header_alt_text ?? '') }}"
+                                                           placeholder="Enter header logo description">
+                                                    @error('company_logo_header_alt_text')
+                                                        <div class="invalid-feedback">{{ $message }}</div>
+                                                    @enderror
+                                                </div>
+                                            </div>
                                         </div>
-                                        <small class="text-secondary mt-1 d-block text-center">
-                                            <i class="ti ti-info-circle me-1"></i>
-                                            Current company logo
-                                        </small>
                                     </div>
                                 </div>
-                                @endif
-                                
-                                <div class="{{ $aboutPage && $aboutPage->company_logo_url ? 'col-md-9' : 'col-12' }}">
-                                    <div class="mb-3">
-                                        <label class="form-label">Company Logo</label>
-                                        <input type="file" class="form-control @error('company_logo') is-invalid @enderror" 
-                                               name="company_logo" accept="image/*" id="company-logo-input">
-                                        @error('company_logo')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                        <small class="form-hint">
-                                            Optional. Recommended: 400x200px, Max: 2MB (JPG, PNG, WebP, SVG)
-                                        </small>
-                                        <div class="mt-3" id="company-logo-preview"></div>
+
+                                {{-- Footer Logo --}}
+                                <div class="card border-0 shadow-sm">
+                                    <div class="card-header bg-secondary-subtle d-flex justify-content-between align-items-center">
+                                        <h6 class="card-title mb-0">
+                                            <i class="ti ti-layout-bottombar me-2"></i>
+                                            Footer Logo
+                                        </h6>
+                                        <small class="text-secondary">Used in website footer and contact sections</small>
                                     </div>
-                                    
-                                    <div class="mb-3">
-                                        <label class="form-label">Logo Alt Text</label>
-                                        <input type="text" class="form-control @error('company_logo_alt_text') is-invalid @enderror" 
-                                               name="company_logo_alt_text" value="{{ old('company_logo_alt_text', $aboutPage->company_logo_alt_text ?? '') }}"
-                                               placeholder="Enter logo description">
-                                        @error('company_logo_alt_text')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
+                                    <div class="card-body">
+                                        <div class="row">
+                                            @if($aboutPage && $aboutPage->company_logo_footer_url)
+                                            <div class="col-md-3">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Current Footer Logo</label>
+                                                    <div class="logo-preview">
+                                                        <img src="{{ $aboutPage->company_logo_footer_url }}" class="logo-image" alt="Current Footer Logo">
+                                                    </div>
+                                                    <small class="text-secondary mt-1 d-block text-center">
+                                                        <i class="ti ti-info-circle me-1"></i>
+                                                        Current footer logo
+                                                    </small>
+                                                </div>
+                                            </div>
+                                            @endif
+                                            
+                                            <div class="{{ $aboutPage && $aboutPage->company_logo_footer_url ? 'col-md-9' : 'col-12' }}">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Footer Logo</label>
+                                                    <input type="file" class="form-control @error('company_logo_footer') is-invalid @enderror" 
+                                                           name="company_logo_footer" accept="image/*" id="company-logo-footer-input">
+                                                    @error('company_logo_footer')
+                                                        <div class="invalid-feedback">{{ $message }}</div>
+                                                    @enderror
+                                                    <small class="form-hint">
+                                                        Optional. Recommended: 400x120px, Max: 2MB (JPG, PNG, WebP, SVG)
+                                                    </small>
+                                                    <div class="mt-3" id="company-logo-footer-preview"></div>
+                                                </div>
+                                                
+                                                <div class="mb-3">
+                                                    <label class="form-label">Footer Logo Alt Text</label>
+                                                    <input type="text" class="form-control @error('company_logo_footer_alt_text') is-invalid @enderror" 
+                                                           name="company_logo_footer_alt_text" value="{{ old('company_logo_footer_alt_text', $aboutPage->company_logo_footer_alt_text ?? '') }}"
+                                                           placeholder="Enter footer logo description">
+                                                    @error('company_logo_footer_alt_text')
+                                                        <div class="invalid-feedback">{{ $message }}</div>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -783,30 +860,6 @@
                             </div>
                         </div>
                     </div>
-                    
-                    @if($aboutPage && $aboutPage->has_social_media)
-                    <div class="alert alert-info">
-                        <div class="d-flex">
-                            <div>
-                                <i class="ti ti-info-circle alert-icon"></i>
-                            </div>
-                            <div>
-                                <h4 class="alert-title">Social Media Preview</h4>
-                                <div class="text-secondary">
-                                    Current configured social media:
-                                    <div class="mt-2">
-                                        @foreach($aboutPage->social_media_links as $platform => $link)
-                                        <span class="badge bg-blue-lt me-1">
-                                            <i class="{{ $link['icon'] }} me-1"></i>
-                                            {{ $link['name'] }}
-                                        </span>
-                                        @endforeach
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    @endif
                 </div>
             </div>
             
@@ -868,13 +921,15 @@
         setupImagePreviews();
         setupStatsPreviews();
         setupFormSubmission();
+        setupSocialMediaValidation();
     });
 
     function setupImagePreviews() {
         const imageInputs = [
             { input: 'banner-input', preview: 'banner-preview', maxSize: 10 },
             { input: 'home-thumbnail-input', preview: 'home-thumbnail-preview', maxSize: 5 },
-            { input: 'company-logo-input', preview: 'company-logo-preview', maxSize: 2 },
+            { input: 'company-logo-header-input', preview: 'company-logo-header-preview', maxSize: 2 },
+            { input: 'company-logo-footer-input', preview: 'company-logo-footer-preview', maxSize: 2 },
             { input: 'section1-input', preview: 'section1-preview', maxSize: 5 },
             { input: 'section2-input', preview: 'section2-preview', maxSize: 5 }
         ];
@@ -909,7 +964,7 @@
 
             const reader = new FileReader();
             reader.onload = function(e) {
-                const isLogo = inputElement.id === 'company-logo-input';
+                const isLogo = inputElement.id.includes('logo');
                 const imageClass = isLogo ? 'img-fluid' : 'card-img-top';
                 const imageStyle = isLogo ? 'max-height: 120px; object-fit: contain;' : 'height: 200px; object-fit: cover;';
                 
@@ -1077,13 +1132,6 @@
         }
     }
 
-    // Clear image preview function
-    window.clearImagePreview = function(previewId, inputId) {
-        document.getElementById(inputId).value = '';
-        document.getElementById(previewId).innerHTML = '';
-    };
-
-    // Social media URL validation
     function setupSocialMediaValidation() {
         const socialInputs = document.querySelectorAll('.social-input');
         
@@ -1096,28 +1144,10 @@
         });
     }
 
-    // Auto-save draft functionality (optional)
-    function setupAutoSave() {
-        const form = document.getElementById('main-form');
-        const inputs = form.querySelectorAll('input, textarea, select');
-        
-        let autoSaveTimer;
-        
-        inputs.forEach(input => {
-            input.addEventListener('input', function() {
-                clearTimeout(autoSaveTimer);
-                autoSaveTimer = setTimeout(() => {
-                    // Could implement auto-save to drafts here
-                    console.log('Auto-save triggered');
-                }, 30000); // 30 seconds
-            });
-        });
-    }
-
-    // Initialize enhanced features
-    document.addEventListener("DOMContentLoaded", function () {
-        setupSocialMediaValidation();
-        // setupAutoSave(); // Uncomment if auto-save is needed
-    });
+    // Clear image preview function
+    window.clearImagePreview = function(previewId, inputId) {
+        document.getElementById(inputId).value = '';
+        document.getElementById(previewId).innerHTML = '';
+    };
 </script>
 @endpush

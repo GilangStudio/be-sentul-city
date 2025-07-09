@@ -22,9 +22,13 @@ return new class extends Migration
             $table->string('home_thumbnail_image_path')->nullable();
             $table->string('home_thumbnail_alt_text')->nullable();
 
-            // Company Logo
-            $table->string('company_logo_path')->nullable();
-            $table->string('company_logo_alt_text')->nullable();
+            // Company Logo Header (for header section)
+            $table->string('company_logo_header_path')->nullable();
+            $table->string('company_logo_header_alt_text')->nullable();
+            
+            // Company Logo Footer (for footer section)
+            $table->string('company_logo_footer_path')->nullable();
+            $table->string('company_logo_footer_alt_text')->nullable();
             
             // Company Info
             $table->string('company_name')->default('PT SENTUL CITY Tbk.');

@@ -37,8 +37,10 @@ class AboutUsController extends Controller
             'banner_alt_text' => 'nullable|string|max:255',
             'home_thumbnail_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
             'home_thumbnail_alt_text' => 'nullable|string|max:255',
-            'company_logo' => 'nullable|image|mimes:jpg,jpeg,png,webp,svg|max:2048',
-            'company_logo_alt_text' => 'nullable|string|max:255',
+            'company_logo_header' => 'nullable|image|mimes:jpg,jpeg,png,webp,svg|max:2048',
+            'company_logo_header_alt_text' => 'nullable|string|max:255',
+            'company_logo_footer' => 'nullable|image|mimes:jpg,jpeg,png,webp,svg|max:2048',
+            'company_logo_footer_alt_text' => 'nullable|string|max:255',
             'company_name' => 'required|string|max:255',
             'company_description' => 'required|string',
             'vision' => 'required|string',
@@ -83,8 +85,10 @@ class AboutUsController extends Controller
             'main_section2_description.required' => 'Section 2 description is required',
             'home_thumbnail_image.image' => 'Home thumbnail must be an image',
             'home_thumbnail_image.max' => 'Home thumbnail size cannot exceed 5MB',
-            'company_logo.image' => 'Company logo must be an image',
-            'company_logo.max' => 'Company logo size cannot exceed 2MB',
+            'company_logo_header.image' => 'Header logo must be an image',
+            'company_logo_header.max' => 'Header logo size cannot exceed 2MB',
+            'company_logo_footer.image' => 'Footer logo must be an image',
+            'company_logo_footer.max' => 'Footer logo size cannot exceed 2MB',
             'facebook_url.url' => 'Facebook URL must be a valid URL',
             'instagram_url.url' => 'Instagram URL must be a valid URL',
             'youtube_url.url' => 'YouTube URL must be a valid URL',
@@ -96,7 +100,8 @@ class AboutUsController extends Controller
             $data = [
                 'banner_alt_text' => $request->banner_alt_text,
                 'home_thumbnail_alt_text' => $request->home_thumbnail_alt_text,
-                'company_logo_alt_text' => $request->company_logo_alt_text,
+                'company_logo_header_alt_text' => $request->company_logo_header_alt_text,
+                'company_logo_footer_alt_text' => $request->company_logo_footer_alt_text,
                 'company_name' => $request->company_name,
                 'company_description' => $request->company_description,
                 'vision' => $request->vision,
@@ -150,11 +155,21 @@ class AboutUsController extends Controller
                     );
                 }
 
-                if ($request->hasFile('company_logo')) {
-                    $data['company_logo_path'] = ImageService::updateImage(
-                        $request->file('company_logo'),
-                        $aboutPage->company_logo_path,
-                        'about-us/logo',
+                if ($request->hasFile('company_logo_header')) {
+                    $data['company_logo_header_path'] = ImageService::updateImage(
+                        $request->file('company_logo_header'),
+                        $aboutPage->company_logo_header_path,
+                        'about-us/logo-header',
+                        90,
+                        400
+                    );
+                }
+
+                if ($request->hasFile('company_logo_footer')) {
+                    $data['company_logo_footer_path'] = ImageService::updateImage(
+                        $request->file('company_logo_footer'),
+                        $aboutPage->company_logo_footer_path,
+                        'about-us/logo-footer',
                         90,
                         400
                     );
@@ -200,10 +215,19 @@ class AboutUsController extends Controller
                     );
                 }
 
-                if ($request->hasFile('company_logo')) {
-                    $data['company_logo_path'] = ImageService::uploadAndCompress(
-                        $request->file('company_logo'),
-                        'about-us/logo',
+                if ($request->hasFile('company_logo_header')) {
+                    $data['company_logo_header_path'] = ImageService::uploadAndCompress(
+                        $request->file('company_logo_header'),
+                        'about-us/logo-header',
+                        90,
+                        400
+                    );
+                }
+
+                if ($request->hasFile('company_logo_footer')) {
+                    $data['company_logo_footer_path'] = ImageService::uploadAndCompress(
+                        $request->file('company_logo_footer'),
+                        'about-us/logo-footer',
                         90,
                         400
                     );

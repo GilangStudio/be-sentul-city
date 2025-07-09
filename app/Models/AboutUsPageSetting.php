@@ -23,9 +23,14 @@ class AboutUsPageSetting extends Model
         return $this->home_thumbnail_image_path ? asset('storage/' . $this->home_thumbnail_image_path) : null;
     }
 
-    public function getCompanyLogoUrlAttribute()
+    public function getCompanyLogoHeaderUrlAttribute()
     {
-        return $this->company_logo_path ? asset('storage/' . $this->company_logo_path) : null;
+        return $this->company_logo_header_path ? asset('storage/' . $this->company_logo_header_path) : null;
+    }
+
+    public function getCompanyLogoFooterUrlAttribute()
+    {
+        return $this->company_logo_footer_path ? asset('storage/' . $this->company_logo_footer_path) : null;
     }
 
     public function getMainSection1ImageUrlAttribute()
@@ -52,6 +57,22 @@ class AboutUsPageSetting extends Model
     public function getMetaKeywordsDisplayAttribute()
     {
         return $this->meta_keywords ?: '';
+    }
+
+    // Logo Status Accessors
+    public function getHasHeaderLogoAttribute()
+    {
+        return !empty($this->company_logo_header_path);
+    }
+
+    public function getHasFooterLogoAttribute()
+    {
+        return !empty($this->company_logo_footer_path);
+    }
+
+    public function getHasAnyLogoAttribute()
+    {
+        return $this->has_header_logo || $this->has_footer_logo;
     }
 
     // Social Media Accessors

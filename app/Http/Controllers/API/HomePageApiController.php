@@ -10,9 +10,6 @@ use App\Models\Promo;
 use App\Models\NewResidentsPageSetting;
 use App\Models\ETownSection;
 use App\Models\AboutUsPageSetting;
-use App\Models\AboutExecutiveSummaryItem;
-use App\Models\AboutFunctionItem;
-use App\Models\AboutServiceItem;
 use Illuminate\Http\JsonResponse;
 
 class HomePageApiController extends Controller
@@ -196,11 +193,12 @@ class HomePageApiController extends Controller
             'app_mockup_alt_text' => $etownSection->app_mockup_alt_text,
             'google_play_url' => $etownSection->google_play_url,
             'app_store_url' => $etownSection->app_store_url,
+            'has_app_store_links' => $etownSection->has_app_store_links,
         ];
     }
 
     /**
-     * Get complete About Us data
+     * Get About Us data for homepage section
      */
     private function getAboutUsData(): ?array
     {
@@ -210,243 +208,12 @@ class HomePageApiController extends Controller
             return null;
         }
 
-        // Get executive summary items
-        $executiveSummaryItems = AboutExecutiveSummaryItem::active()
-                                                        ->ordered()
-                                                        ->select('id', 'title', 'description', 'icon_path', 'icon_alt_text', 'order')
-                                                        ->get()
-                                                        ->map(function ($item) {
-                                                            return [
-                                                                'id' => $item->id,
-                                                                'title' => $item->title,
-                                                                'description' => $item->description,
-                                                                'icon_url' => $item->icon_url,
-                                                                'icon_alt_text' => $item->icon_alt_text,
-                                                                'order' => $item->order,
-                                                            ];
-                                                        });
-
-        // Get function items
-        $functionItems = AboutFunctionItem::active()
-                                         ->ordered()
-                                         ->select('id', 'title', 'description', 'image_path', 'image_alt_text', 'order')
-                                         ->get()
-                                         ->map(function ($item) {
-                                             return [
-                                                 'id' => $item->id,
-                                                 'title' => $item->title,
-                                                 'description' => $item->description,
-                                                 'image_url' => $item->image_url,
-                                                 'image_alt_text' => $item->image_alt_text,
-                                                 'order' => $item->order,
-                                             ];
-                                         });
-
-        // Get service items
-        $serviceItems = AboutServiceItem::active()
-                                       ->ordered()
-                                       ->select('id', 'title', 'description', 'icon_path', 'icon_alt_text', 'order')
-                                       ->get()
-                                       ->map(function ($item) {
-                                           return [
-                                               'id' => $item->id,
-                                               'title' => $item->title,
-                                               'description' => $item->description,
-                                               'icon_url' => $item->icon_url,
-                                               'icon_alt_text' => $item->icon_alt_text,
-                                               'order' => $item->order,
-                                           ];
-                                       });
-
         return [
-            'banner' => [
-                'image_url' => $aboutPage->banner_image_url,
-                'alt_text' => $aboutPage->banner_alt_text,
-            ],
-            'company_info' => [
-                'name' => $aboutPage->company_name,
-                'description' => $aboutPage->company_description,
-                'vision' => $aboutPage->vision,
-                'mission' => $aboutPage->mission,
-            ],
-            'statistics' => [
-                'total_houses' => $aboutPage->total_houses,
-                'houses_label' => $aboutPage->houses_label,
-                'daily_visitors' => $aboutPage->daily_visitors,
-                'visitors_label' => $aboutPage->visitors_label,
-                'commercial_areas' => $aboutPage->commercial_areas,
-                'commercial_label' => $aboutPage->commercial_label,
-            ],
-            'main_sections' => [
-                'section_1' => [
-                    'title' => $aboutPage->main_section1_title,
-                    'description' => $aboutPage->main_section1_description,
-                    'image_url' => $aboutPage->main_section1_image_url,
-                    'image_alt_text' => $aboutPage->main_section1_image_alt_text,
-                ],
-                'section_2' => [
-                    'title' => $aboutPage->main_section2_title,
-                    'description' => $aboutPage->main_section2_description,
-                    'image_url' => $aboutPage->main_section2_image_url,
-                    'image_alt_text' => $aboutPage->main_section2_image_alt_text,
-                ],
-            ],
-            'contact_info' => [
-                'phone' => $aboutPage->phone,
-                'email' => $aboutPage->email,
-                'address' => $aboutPage->address,
-                'website_url' => $aboutPage->website_url,
-            ],
-            'executive_summary_items' => $executiveSummaryItems->toArray(),
-            'function_items' => $functionItems->toArray(),
-            'service_items' => $serviceItems->toArray(),
-            'seo' => [
-                'meta_title' => $aboutPage->meta_title_display,
-                'meta_description' => $aboutPage->meta_description_display,
-                'meta_keywords' => $aboutPage->meta_keywords_display,
-            ],
+            'thumbnail_image_url' => $aboutPage->home_thumbnail_image_url,
+            'thumbnail_alt_text' => $aboutPage->home_thumbnail_alt_text,
+            'company_name' => $aboutPage->company_name,
+            'company_description' => $aboutPage->company_description,
+            'website_url' => $aboutPage->website_url,
         ];
-    }
-
-    /**
-     * Get individual section data endpoints for more granular access
-     */
-
-    /**
-     * Get only banners data
-     */
-    public function getBanners(): JsonResponse
-    {
-        try {
-            $banners = $this->getBannersData();
-
-            return response()->json([
-                'success' => true,
-                'data' => $banners,
-                'message' => 'Homepage banners retrieved successfully'
-            ]);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to retrieve banners',
-                'error' => $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * Get only news data
-     */
-    public function getNews(): JsonResponse
-    {
-        try {
-            $news = $this->getNewsData();
-
-            return response()->json([
-                'success' => true,
-                'data' => $news,
-                'message' => 'Homepage news retrieved successfully'
-            ]);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to retrieve news',
-                'error' => $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * Get only promos data
-     */
-    public function getPromos(): JsonResponse
-    {
-        try {
-            $promos = $this->getPromosData();
-
-            return response()->json([
-                'success' => true,
-                'data' => $promos,
-                'message' => 'Homepage promos retrieved successfully'
-            ]);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to retrieve promos',
-                'error' => $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * Get only neighborhood guide data
-     */
-    public function getNeighborhoodGuide(): JsonResponse
-    {
-        try {
-            $neighborhoodGuide = $this->getNeighborhoodGuideData();
-
-            return response()->json([
-                'success' => true,
-                'data' => $neighborhoodGuide,
-                'message' => 'Neighborhood guide data retrieved successfully'
-            ]);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to retrieve neighborhood guide data',
-                'error' => $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * Get only E-Town section data
-     */
-    public function getETownSection(): JsonResponse
-    {
-        try {
-            $etownSection = $this->getETownSectionData();
-
-            return response()->json([
-                'success' => true,
-                'data' => $etownSection,
-                'message' => 'E-Town section data retrieved successfully'
-            ]);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to retrieve E-Town section data',
-                'error' => $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * Get only About Us data
-     */
-    public function getAboutUs(): JsonResponse
-    {
-        try {
-            $aboutUs = $this->getAboutUsData();
-
-            return response()->json([
-                'success' => true,
-                'data' => $aboutUs,
-                'message' => 'About Us data retrieved successfully'
-            ]);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to retrieve About Us data',
-                'error' => $e->getMessage()
-            ], 500);
-        }
     }
 }
