@@ -35,6 +35,10 @@ class AboutUsController extends Controller
         $request->validate([
             'banner_image' => $isUpdate ? 'nullable|image|mimes:jpg,jpeg,png,webp|max:10240' : 'required|image|mimes:jpg,jpeg,png,webp|max:10240',
             'banner_alt_text' => 'nullable|string|max:255',
+            'home_thumbnail_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
+            'home_thumbnail_alt_text' => 'nullable|string|max:255',
+            'company_logo' => 'nullable|image|mimes:jpg,jpeg,png,webp,svg|max:2048',
+            'company_logo_alt_text' => 'nullable|string|max:255',
             'company_name' => 'required|string|max:255',
             'company_description' => 'required|string',
             'vision' => 'required|string',
@@ -57,6 +61,11 @@ class AboutUsController extends Controller
             'email' => 'nullable|email|max:255',
             'address' => 'nullable|string',
             'website_url' => 'nullable|url',
+            'facebook_url' => 'nullable|url',
+            'instagram_url' => 'nullable|url',
+            'youtube_url' => 'nullable|url',
+            'twitter_url' => 'nullable|url',
+            'linkedin_url' => 'nullable|url',
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:500',
             'meta_keywords' => 'nullable|string|max:255',
@@ -72,11 +81,22 @@ class AboutUsController extends Controller
             'main_section2_image.required' => 'Section 2 image is required',
             'main_section2_title.required' => 'Section 2 title is required',
             'main_section2_description.required' => 'Section 2 description is required',
+            'home_thumbnail_image.image' => 'Home thumbnail must be an image',
+            'home_thumbnail_image.max' => 'Home thumbnail size cannot exceed 5MB',
+            'company_logo.image' => 'Company logo must be an image',
+            'company_logo.max' => 'Company logo size cannot exceed 2MB',
+            'facebook_url.url' => 'Facebook URL must be a valid URL',
+            'instagram_url.url' => 'Instagram URL must be a valid URL',
+            'youtube_url.url' => 'YouTube URL must be a valid URL',
+            'twitter_url.url' => 'Twitter URL must be a valid URL',
+            'linkedin_url.url' => 'LinkedIn URL must be a valid URL',
         ]);
 
         try {
             $data = [
                 'banner_alt_text' => $request->banner_alt_text,
+                'home_thumbnail_alt_text' => $request->home_thumbnail_alt_text,
+                'company_logo_alt_text' => $request->company_logo_alt_text,
                 'company_name' => $request->company_name,
                 'company_description' => $request->company_description,
                 'vision' => $request->vision,
@@ -97,6 +117,11 @@ class AboutUsController extends Controller
                 'email' => $request->email,
                 'address' => $request->address,
                 'website_url' => $request->website_url,
+                'facebook_url' => $request->facebook_url,
+                'instagram_url' => $request->instagram_url,
+                'youtube_url' => $request->youtube_url,
+                'twitter_url' => $request->twitter_url,
+                'linkedin_url' => $request->linkedin_url,
                 'meta_title' => $request->meta_title,
                 'meta_description' => $request->meta_description,
                 'meta_keywords' => $request->meta_keywords,
@@ -104,6 +129,7 @@ class AboutUsController extends Controller
             ];
 
             if ($isUpdate) {
+                // Update existing images
                 if ($request->hasFile('banner_image')) {
                     $data['banner_image_path'] = ImageService::updateImage(
                         $request->file('banner_image'),
@@ -111,6 +137,26 @@ class AboutUsController extends Controller
                         'about-us/banner',
                         85,
                         1920
+                    );
+                }
+
+                if ($request->hasFile('home_thumbnail_image')) {
+                    $data['home_thumbnail_image_path'] = ImageService::updateImage(
+                        $request->file('home_thumbnail_image'),
+                        $aboutPage->home_thumbnail_image_path,
+                        'about-us/home-thumbnail',
+                        85,
+                        800
+                    );
+                }
+
+                if ($request->hasFile('company_logo')) {
+                    $data['company_logo_path'] = ImageService::updateImage(
+                        $request->file('company_logo'),
+                        $aboutPage->company_logo_path,
+                        'about-us/logo',
+                        90,
+                        400
                     );
                 }
 
@@ -137,12 +183,31 @@ class AboutUsController extends Controller
                 $aboutPage->update($data);
                 $message = 'About Us page updated successfully';
             } else {
+                // Create new with required images
                 $data['banner_image_path'] = ImageService::uploadAndCompress(
                     $request->file('banner_image'),
                     'about-us/banner',
                     85,
                     1920
                 );
+
+                if ($request->hasFile('home_thumbnail_image')) {
+                    $data['home_thumbnail_image_path'] = ImageService::uploadAndCompress(
+                        $request->file('home_thumbnail_image'),
+                        'about-us/home-thumbnail',
+                        85,
+                        800
+                    );
+                }
+
+                if ($request->hasFile('company_logo')) {
+                    $data['company_logo_path'] = ImageService::uploadAndCompress(
+                        $request->file('company_logo'),
+                        'about-us/logo',
+                        90,
+                        400
+                    );
+                }
 
                 $data['main_section1_image_path'] = ImageService::uploadAndCompress(
                     $request->file('main_section1_image'),

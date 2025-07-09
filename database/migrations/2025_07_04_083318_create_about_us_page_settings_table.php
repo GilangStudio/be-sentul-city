@@ -17,6 +17,14 @@ return new class extends Migration
             // Banner Section
             $table->string('banner_image_path');
             $table->string('banner_alt_text')->nullable();
+
+            // Home Section Thumbnail
+            $table->string('home_thumbnail_image_path')->nullable();
+            $table->string('home_thumbnail_alt_text')->nullable();
+
+            // Company Logo
+            $table->string('company_logo_path')->nullable();
+            $table->string('company_logo_alt_text')->nullable();
             
             // Company Info
             $table->string('company_name')->default('PT SENTUL CITY Tbk.');
@@ -49,6 +57,13 @@ return new class extends Migration
             $table->string('email')->nullable();
             $table->text('address')->nullable();
             $table->string('website_url')->nullable();
+
+            // Social Media Links
+            $table->string('facebook_url')->nullable();
+            $table->string('instagram_url')->nullable();
+            $table->string('youtube_url')->nullable();
+            $table->string('twitter_url')->nullable();
+            $table->string('linkedin_url')->nullable();
             
             // SEO
             $table->string('meta_title')->nullable();

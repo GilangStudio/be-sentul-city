@@ -18,6 +18,30 @@
         object-fit: cover;
     }
     
+    .thumbnail-preview {
+        max-height: 200px;
+        overflow: hidden;
+        border-radius: 8px;
+        background-color: #f8f9fa;
+    }
+    
+    .logo-preview {
+        max-height: 150px;
+        overflow: hidden;
+        border-radius: 8px;
+        background-color: #f8f9fa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+    
+    .logo-image {
+        max-width: 100%;
+        max-height: 120px;
+        object-fit: contain;
+    }
+    
     .stats-card {
         background: var(--tblr-primary);
         color: white;
@@ -48,17 +72,27 @@
         border-bottom: 1px solid #e9ecef;
     }
     
-    .section-preview-card {
-        border: 2px dashed #dee2e6;
-        border-radius: 8px;
-        padding: 1rem;
-        background: #f8f9fa;
-        transition: all 0.3s ease;
+    .social-media-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
     }
     
-    .section-preview-card:hover {
-        border-color: var(--tblr-primary);
-        background: #e3f2fd;
+    .social-input-group {
+        position: relative;
+    }
+    
+    .social-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6c757d;
+        z-index: 3;
+    }
+    
+    .social-input {
+        padding-left: 40px;
     }
     
     .contact-info-grid {
@@ -166,6 +200,62 @@
                 </div>
             </div>
 
+            {{-- Home Section Thumbnail --}}
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="ti ti-home me-2"></i>
+                        Home Section Thumbnail
+                    </h3>
+                    <div class="card-actions">
+                        <small class="text-secondary">Displayed on homepage about section</small>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        @if($aboutPage && $aboutPage->home_thumbnail_image_url)
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Current Thumbnail</label>
+                                <div class="thumbnail-preview">
+                                    <img src="{{ $aboutPage->home_thumbnail_image_url }}" class="img-fluid rounded" alt="Current Thumbnail">
+                                </div>
+                                <small class="text-secondary mt-1 d-block">
+                                    <i class="ti ti-info-circle me-1"></i>
+                                    Current home thumbnail
+                                </small>
+                            </div>
+                        </div>
+                        @endif
+                        
+                        <div class="{{ $aboutPage && $aboutPage->home_thumbnail_image_url ? 'col-md-8' : 'col-12' }}">
+                            <div class="mb-3">
+                                <label class="form-label">Home Thumbnail Image</label>
+                                <input type="file" class="form-control @error('home_thumbnail_image') is-invalid @enderror" 
+                                       name="home_thumbnail_image" accept="image/*" id="home-thumbnail-input">
+                                @error('home_thumbnail_image')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                                <small class="form-hint">
+                                    Optional. Recommended: 800x600px, Max: 5MB (JPG, PNG, WebP)
+                                </small>
+                                <div class="mt-3" id="home-thumbnail-preview"></div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Thumbnail Alt Text</label>
+                                <input type="text" class="form-control @error('home_thumbnail_alt_text') is-invalid @enderror" 
+                                       name="home_thumbnail_alt_text" value="{{ old('home_thumbnail_alt_text', $aboutPage->home_thumbnail_alt_text ?? '') }}"
+                                       placeholder="Enter thumbnail description">
+                                @error('home_thumbnail_alt_text')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             {{-- Company Information --}}
             <div class="card mt-3">
                 <div class="card-header">
@@ -176,7 +266,7 @@
                 </div>
                 <div class="card-body">
                     <div class="row">
-                        <div class="col-md-8">
+                        <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Company Name <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control @error('company_name') is-invalid @enderror" 
@@ -187,7 +277,7 @@
                                 @enderror
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Status</label>
                                 <label class="form-check form-switch">
@@ -200,6 +290,52 @@
                                 </small>
                             </div>
                         </div>
+                        
+                        {{-- Company Logo Section --}}
+                        <div class="col-12">
+                            <div class="row">
+                                @if($aboutPage && $aboutPage->company_logo_url)
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">Current Logo</label>
+                                        <div class="logo-preview">
+                                            <img src="{{ $aboutPage->company_logo_url }}" class="logo-image" alt="Current Logo">
+                                        </div>
+                                        <small class="text-secondary mt-1 d-block text-center">
+                                            <i class="ti ti-info-circle me-1"></i>
+                                            Current company logo
+                                        </small>
+                                    </div>
+                                </div>
+                                @endif
+                                
+                                <div class="{{ $aboutPage && $aboutPage->company_logo_url ? 'col-md-9' : 'col-12' }}">
+                                    <div class="mb-3">
+                                        <label class="form-label">Company Logo</label>
+                                        <input type="file" class="form-control @error('company_logo') is-invalid @enderror" 
+                                               name="company_logo" accept="image/*" id="company-logo-input">
+                                        @error('company_logo')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                        <small class="form-hint">
+                                            Optional. Recommended: 400x200px, Max: 2MB (JPG, PNG, WebP, SVG)
+                                        </small>
+                                        <div class="mt-3" id="company-logo-preview"></div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label">Logo Alt Text</label>
+                                        <input type="text" class="form-control @error('company_logo_alt_text') is-invalid @enderror" 
+                                               name="company_logo_alt_text" value="{{ old('company_logo_alt_text', $aboutPage->company_logo_alt_text ?? '') }}"
+                                               placeholder="Enter logo description">
+                                        @error('company_logo_alt_text')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
                         <div class="col-12">
                             <div class="mb-3">
                                 <label class="form-label">Company Description <span class="text-danger">*</span></label>
@@ -489,7 +625,7 @@
                 </div>
             </div>
 
-            {{-- Contact Information --}}
+            {{-- Contact Information & Social Media --}}
             <div class="card mt-3">
                 <div class="card-header">
                     <h3 class="card-title">
@@ -551,6 +687,126 @@
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
+                </div>
+            </div>
+
+            {{-- Social Media Links --}}
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="ti ti-share me-2"></i>
+                        Social Media Links
+                    </h3>
+                    <div class="card-actions">
+                        <small class="text-secondary">Optional social media profiles</small>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="social-media-grid">
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="ti ti-brand-facebook me-1 text-primary"></i>
+                                Facebook
+                            </label>
+                            <div class="social-input-group">
+                                <i class="ti ti-brand-facebook social-icon"></i>
+                                <input type="url" class="form-control social-input @error('facebook_url') is-invalid @enderror" 
+                                       name="facebook_url" value="{{ old('facebook_url', $aboutPage->facebook_url ?? '') }}"
+                                       placeholder="https://facebook.com/sentulcity">
+                                @error('facebook_url')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="ti ti-brand-instagram me-1 text-danger"></i>
+                                Instagram
+                            </label>
+                            <div class="social-input-group">
+                                <i class="ti ti-brand-instagram social-icon"></i>
+                                <input type="url" class="form-control social-input @error('instagram_url') is-invalid @enderror" 
+                                       name="instagram_url" value="{{ old('instagram_url', $aboutPage->instagram_url ?? '') }}"
+                                       placeholder="https://instagram.com/sentulcity">
+                                @error('instagram_url')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="ti ti-brand-youtube me-1 text-danger"></i>
+                                YouTube
+                            </label>
+                            <div class="social-input-group">
+                                <i class="ti ti-brand-youtube social-icon"></i>
+                                <input type="url" class="form-control social-input @error('youtube_url') is-invalid @enderror" 
+                                       name="youtube_url" value="{{ old('youtube_url', $aboutPage->youtube_url ?? '') }}"
+                                       placeholder="https://youtube.com/@sentulcity">
+                                @error('youtube_url')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="ti ti-brand-twitter me-1 text-info"></i>
+                                Twitter / X
+                            </label>
+                            <div class="social-input-group">
+                                <i class="ti ti-brand-twitter social-icon"></i>
+                                <input type="url" class="form-control social-input @error('twitter_url') is-invalid @enderror" 
+                                       name="twitter_url" value="{{ old('twitter_url', $aboutPage->twitter_url ?? '') }}"
+                                       placeholder="https://twitter.com/sentulcity">
+                                @error('twitter_url')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="ti ti-brand-linkedin me-1 text-primary"></i>
+                                LinkedIn
+                            </label>
+                            <div class="social-input-group">
+                                <i class="ti ti-brand-linkedin social-icon"></i>
+                                <input type="url" class="form-control social-input @error('linkedin_url') is-invalid @enderror" 
+                                       name="linkedin_url" value="{{ old('linkedin_url', $aboutPage->linkedin_url ?? '') }}"
+                                       placeholder="https://linkedin.com/company/sentulcity">
+                                @error('linkedin_url')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+                    
+                    @if($aboutPage && $aboutPage->has_social_media)
+                    <div class="alert alert-info">
+                        <div class="d-flex">
+                            <div>
+                                <i class="ti ti-info-circle alert-icon"></i>
+                            </div>
+                            <div>
+                                <h4 class="alert-title">Social Media Preview</h4>
+                                <div class="text-secondary">
+                                    Current configured social media:
+                                    <div class="mt-2">
+                                        @foreach($aboutPage->social_media_links as $platform => $link)
+                                        <span class="badge bg-blue-lt me-1">
+                                            <i class="{{ $link['icon'] }} me-1"></i>
+                                            {{ $link['name'] }}
+                                        </span>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
                 </div>
             </div>
             
@@ -615,30 +871,24 @@
     });
 
     function setupImagePreviews() {
-        const bannerInput = document.getElementById('banner-input');
-        const bannerPreview = document.getElementById('banner-preview');
-        const section1Input = document.getElementById('section1-input');
-        const section1Preview = document.getElementById('section1-preview');
-        const section2Input = document.getElementById('section2-input');
-        const section2Preview = document.getElementById('section2-preview');
+        const imageInputs = [
+            { input: 'banner-input', preview: 'banner-preview', maxSize: 10 },
+            { input: 'home-thumbnail-input', preview: 'home-thumbnail-preview', maxSize: 5 },
+            { input: 'company-logo-input', preview: 'company-logo-preview', maxSize: 2 },
+            { input: 'section1-input', preview: 'section1-preview', maxSize: 5 },
+            { input: 'section2-input', preview: 'section2-preview', maxSize: 5 }
+        ];
         
-        if (bannerInput) {
-            bannerInput.addEventListener('change', function(e) {
-                handleImagePreview(e, bannerPreview, bannerInput, 10);
-            });
-        }
-        
-        if (section1Input) {
-            section1Input.addEventListener('change', function(e) {
-                handleImagePreview(e, section1Preview, section1Input, 5);
-            });
-        }
-        
-        if (section2Input) {
-            section2Input.addEventListener('change', function(e) {
-                handleImagePreview(e, section2Preview, section2Input, 5);
-            });
-        }
+        imageInputs.forEach(({ input, preview, maxSize }) => {
+            const inputElement = document.getElementById(input);
+            const previewElement = document.getElementById(preview);
+            
+            if (inputElement && previewElement) {
+                inputElement.addEventListener('change', function(e) {
+                    handleImagePreview(e, previewElement, inputElement, maxSize);
+                });
+            }
+        });
     }
 
     function handleImagePreview(event, previewContainer, inputElement, maxSizeMB) {
@@ -659,9 +909,13 @@
 
             const reader = new FileReader();
             reader.onload = function(e) {
+                const isLogo = inputElement.id === 'company-logo-input';
+                const imageClass = isLogo ? 'img-fluid' : 'card-img-top';
+                const imageStyle = isLogo ? 'max-height: 120px; object-fit: contain;' : 'height: 200px; object-fit: cover;';
+                
                 previewContainer.innerHTML = `
                     <div class="card border-success">
-                        <img src="${e.target.result}" class="card-img-top" style="height: 200px; object-fit: cover;">
+                        <img src="${e.target.result}" class="${imageClass}" style="${imageStyle}">
                         <div class="card-body p-3">
                             <div class="d-flex justify-content-between align-items-start">
                                 <div class="flex-fill">
@@ -829,6 +1083,19 @@
         document.getElementById(previewId).innerHTML = '';
     };
 
+    // Social media URL validation
+    function setupSocialMediaValidation() {
+        const socialInputs = document.querySelectorAll('.social-input');
+        
+        socialInputs.forEach(input => {
+            input.addEventListener('blur', function() {
+                if (this.value && !this.value.startsWith('http')) {
+                    this.value = 'https://' + this.value;
+                }
+            });
+        });
+    }
+
     // Auto-save draft functionality (optional)
     function setupAutoSave() {
         const form = document.getElementById('main-form');
@@ -849,6 +1116,7 @@
 
     // Initialize enhanced features
     document.addEventListener("DOMContentLoaded", function () {
+        setupSocialMediaValidation();
         // setupAutoSave(); // Uncomment if auto-save is needed
     });
 </script>

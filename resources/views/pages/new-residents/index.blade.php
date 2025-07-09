@@ -157,7 +157,7 @@
                             <div class="mb-3">
                                 <label class="form-label">Section Description <span class="text-danger">*</span></label>
                                 <textarea class="form-control @error('neighborhood_description') is-invalid @enderror" 
-                                          name="neighborhood_description" id="editor" rows="6" required
+                                          name="neighborhood_description" id="editor" rows="6"
                                           placeholder="Enter neighborhood guide description...">{{ old('neighborhood_description', $newResidentsPage->neighborhood_description ?? '') }}</textarea>
                                 @error('neighborhood_description')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -167,6 +167,41 @@
                                     Describe the neighborhood features and benefits for new residents.
                                 </small>
                             </div>
+                        </div>
+                        
+                        @if($newResidentsPage && $newResidentsPage->neighborhood_image_url)
+                        <div class="mb-3">
+                            <label class="form-label">Current Image</label>
+                            <div class="image-preview-container">
+                                <img src="{{ $newResidentsPage->neighborhood_image_url }}" class="img-fluid rounded" alt="Neighborhood Image">
+                            </div>
+                        </div>
+                        @endif
+                        
+                        <div class="mb-3">
+                            <label class="form-label">
+                                Neighborhood Image @if(!$newResidentsPage)<span class="text-danger">*</span>@endif
+                            </label>
+                            <input type="file" class="form-control @error('neighborhood_image') is-invalid @enderror" 
+                                name="neighborhood_image" accept="image/*" {{ $newResidentsPage ? '' : 'required' }} id="neighborhood-input">
+                            @error('neighborhood_image')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                            <small class="form-hint">
+                                @if($newResidentsPage)Leave empty to keep current image. @endif
+                                Recommended: 1200x800px, Max: 5MB
+                            </small>
+                            <div class="mt-3" id="neighborhood-preview"></div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Image Alt Text</label>
+                            <input type="text" class="form-control @error('neighborhood_image_alt_text') is-invalid @enderror" 
+                                name="neighborhood_image_alt_text" value="{{ old('neighborhood_image_alt_text', $newResidentsPage->neighborhood_image_alt_text ?? '') }}"
+                                placeholder="Enter image description">
+                            @error('neighborhood_image_alt_text')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                     </div>
                 </div>
@@ -180,54 +215,8 @@
         {{-- Right Column --}}
         <div class="col-lg-4">
             
-            {{-- Neighborhood Guide Image --}}
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">
-                        <i class="ti ti-photo me-2"></i>
-                        Neighborhood Guide Image
-                    </h3>
-                </div>
-                <div class="card-body">
-                    @if($newResidentsPage && $newResidentsPage->neighborhood_image_url)
-                    <div class="mb-3">
-                        <label class="form-label">Current Image</label>
-                        <div class="image-preview-container">
-                            <img src="{{ $newResidentsPage->neighborhood_image_url }}" class="img-fluid rounded" alt="Neighborhood Image">
-                        </div>
-                    </div>
-                    @endif
-                    
-                    <div class="mb-3">
-                        <label class="form-label">
-                            Neighborhood Image @if(!$newResidentsPage)<span class="text-danger">*</span>@endif
-                        </label>
-                        <input type="file" class="form-control @error('neighborhood_image') is-invalid @enderror" 
-                               name="neighborhood_image" accept="image/*" {{ $newResidentsPage ? '' : 'required' }} id="neighborhood-input">
-                        @error('neighborhood_image')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                        <small class="form-hint">
-                            @if($newResidentsPage)Leave empty to keep current image. @endif
-                            Recommended: 1200x800px, Max: 5MB
-                        </small>
-                        <div class="mt-3" id="neighborhood-preview"></div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label">Image Alt Text</label>
-                        <input type="text" class="form-control @error('neighborhood_image_alt_text') is-invalid @enderror" 
-                               name="neighborhood_image_alt_text" value="{{ old('neighborhood_image_alt_text', $newResidentsPage->neighborhood_image_alt_text ?? '') }}"
-                               placeholder="Enter image description">
-                        @error('neighborhood_image_alt_text')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                </div>
-            </div>
-
             {{-- Page Settings --}}
-            <div class="card mt-3">
+            <div class="card">
                 <div class="card-header">
                     <h3 class="card-title">
                         <i class="ti ti-settings me-2"></i>
