@@ -22,6 +22,10 @@ return new class extends Migration
             $table->enum('status', ['pending', 'reviewed', 'shortlisted', 'rejected', 'hired'])->default('pending');
             $table->timestamp('applied_at'); // Application date
             $table->timestamps();
+
+            $table->unique(['career_position_id', 'email'], 'unique_application_per_position');
+            $table->index('email');
+            $table->index('status');
         });
     }
 

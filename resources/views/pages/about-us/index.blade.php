@@ -579,7 +579,7 @@
                         <div class="btn-list">
                             <button type="submit" class="btn btn-primary" id="save-main-btn">
                                 <i class="ti ti-device-floppy me-1"></i>
-                                {{ $aboutPage ? 'Update About Us Page' : 'Create About Us Page' }}
+                                {{ $aboutPage ? 'Update' : 'Save' }}  About Us Page
                             </button>
                         </div>
                     </div>

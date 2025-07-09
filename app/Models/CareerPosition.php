@@ -109,9 +109,42 @@ class CareerPosition extends Model
         return $query->orderBy('order')->orderBy('posted_at', 'desc');
     }
 
+    public function scopeApplicable($query)
+    {
+        return $query->where('is_active', true)
+                    ->where(function($q) {
+                        $q->whereNull('closing_date')
+                        ->orWhere('closing_date', '>', now());
+                    });
+    }
+
     // Check if position can be deleted
     public function canDelete(): bool
     {
         return $this->applications()->count() === 0;
+    }
+
+    /**
+     * Check if position is still accepting applications
+     */
+    public function isAcceptingApplications(): bool
+    {
+        if (!$this->is_active) {
+            return false;
+        }
+        
+        if ($this->closing_date && $this->closing_date->isPast()) {
+            return false;
+        }
+        
+        return true;
+    }
+
+    /**
+     * Get route key name for API
+     */
+    public function getRouteKeyName()
+    {
+        return 'slug'; // Menggunakan slug untuk URL yang SEO-friendly
     }
 }

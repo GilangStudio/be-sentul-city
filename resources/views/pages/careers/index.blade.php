@@ -297,15 +297,15 @@
                         @endif
                         
                         <div class="btn-list">
-                            @if($careerPage)
+                            {{-- @if($careerPage)
                             <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#delete-modal">
                                 <i class="ti ti-trash me-1"></i>
                                 Delete Settings
                             </button>
-                            @endif
+                            @endif --}}
                             <button type="submit" class="btn btn-primary" id="save-page-btn">
                                 <i class="ti ti-device-floppy me-1"></i>
-                                {{ $careerPage ? 'Update' : 'Create' }} Page Settings
+                                {{ $careerPage ? 'Update' : 'Save' }} Page Settings
                             </button>
                         </div>
                     </div>

@@ -113,16 +113,6 @@
                     <p class="mb-3 opacity-75">
                         Manage your website content, track applications, and monitor your digital presence all in one place.
                     </p>
-                    <div class="d-flex gap-2">
-                        <a href="{{ route('news.create') }}" class="btn btn-light btn-sm">
-                            <i class="ti ti-plus me-1"></i>
-                            Add News
-                        </a>
-                        <a href="{{ route('promos.index') }}" class="btn btn-light btn-sm">
-                            <i class="ti ti-photo me-1"></i>
-                            Manage Promos
-                        </a>
-                    </div>
                 </div>
                 <div class="col-auto d-none d-lg-block">
                     <div class="text-end">
@@ -652,7 +642,6 @@
                 legend: {
                     show: true,
                     position: 'bottom',
-                    offsetY: 12,
                     markers: {
                         width: 10,
                         height: 10,
@@ -713,7 +702,6 @@
                 legend: {
                     show: true,
                     position: 'bottom',
-                    offsetY: 12,
                     markers: {
                         width: 10,
                         height: 10,

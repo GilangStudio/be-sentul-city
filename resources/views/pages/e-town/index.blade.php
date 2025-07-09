@@ -340,7 +340,7 @@
                             @endif --}}
                             <button type="submit" class="btn btn-primary" id="save-page-btn">
                                 <i class="ti ti-device-floppy me-1"></i>
-                                {{ $etownSection ? 'Update' : 'Create' }} Section
+                                {{ $etownSection ? 'Update' : 'Save' }} Section
                             </button>
                         </div>
                     </div>

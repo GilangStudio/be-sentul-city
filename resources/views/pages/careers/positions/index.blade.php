@@ -267,6 +267,22 @@
                                     {!! Str::limit(strip_tags($position->responsibilities), 120) !!}
                                 </div>
                             </div>
+
+                            <div class="mb-3">
+                                @if($position->applications_count > 0)
+                                <div class="d-flex align-items-start gap-1">
+                                    <span class="badge bg-blue-lt">
+                                        {{ $position->applications_count }} 
+                                        {{ Str::plural('application', $position->applications_count) }}
+                                    </span>
+                                    @if($position->pending_applications_count > 0)
+                                    <span class="badge bg-warning-lt">
+                                        {{ $position->pending_applications_count }} pending
+                                    </span>
+                                    @endif
+                                </div>
+                                @endif
+                            </div>
                             
                             <div class="d-flex justify-content-between align-items-end">
                                 <div class="text-secondary small">
@@ -281,19 +297,6 @@
                                     </div>
                                     @endif
                                 </div>
-                                @if($position->applications_count > 0)
-                                <div class="d-flex flex-column align-items-end gap-1">
-                                    <span class="badge bg-blue-lt">
-                                        {{ $position->applications_count }} 
-                                        {{ Str::plural('application', $position->applications_count) }}
-                                    </span>
-                                    @if($position->pending_applications_count > 0)
-                                    <span class="badge bg-warning-lt">
-                                        {{ $position->pending_applications_count }} pending
-                                    </span>
-                                    @endif
-                                </div>
-                                @endif
                             </div>
                         </div>
                     </div>

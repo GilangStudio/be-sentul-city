@@ -59,6 +59,50 @@
         pointer-events: none;
         opacity: 0.6;
     }
+
+    .applicant-avatar {
+        width: 80px;
+        height: 80px;
+        background: var(--tblr-primary);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        font-weight: 600;
+        border-radius: 12px;
+        margin-right: 1rem;
+    }
+
+    .contact-item {
+        display: flex;
+        align-items: center;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid var(--tblr-border-color-translucent);
+    }
+
+    .contact-item:last-child {
+        border-bottom: none;
+    }
+
+    .contact-icon {
+        width: 36px;
+        height: 36px;
+        background: var(--tblr-bg-surface-secondary);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 0.75rem;
+    }
+
+    .message-content {
+        background: var(--tblr-bg-surface);
+        border-radius: 8px;
+        padding: 1rem;
+        border-left: 4px solid var(--tblr-primary);
+        margin-top: 0.75rem;
+    }
 </style>
 @endpush
 
@@ -69,10 +113,156 @@
         <div class="page-subtitle">
             <strong>{{ $application->name }}</strong> applied for <strong>{{ $position->title }}</strong>
         </div>
+    </div>
+    <div class="btn-list">
+        <a href="{{ route('careers.positions.applications.index', $position) }}" class="btn btn-outline-secondary">
+            <i class="ti ti-arrow-left me-1"></i> Back to Applications
+        </a>
+        <a href="{{ route('careers.positions.edit', $position) }}" class="btn btn-outline-primary">
+            <i class="ti ti-edit me-1"></i> Edit Position
+        </a>
+    </div>
+</div>
+@endsection
+
+@section('content')
+
+<div class="row">
+    <div class="col-lg-8">
+        {{-- Applicant Information Card --}}
+        <div class="card mb-3">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="ti ti-user me-2"></i>
+                    Applicant Information
+                </h3>
+                <div class="card-actions">
+                    <span class="badge bg-{{ $application->status_color }}-lt fs-6">
+                        <span class="status-dot bg-{{ $application->status_color }}"></span>
+                        {{ $application->status_text }}
+                    </span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-12">
+                        {{-- Basic Info with Avatar --}}
+                        <div class="d-flex align-items-start mb-4">
+                            <div class="applicant-avatar">
+                                {{ strtoupper(substr($application->name, 0, 2)) }}
+                            </div>
+                            <div class="flex-fill">
+                                <h3 class="mb-1">{{ $application->name }}</h3>
+                                <div class="text-secondary mb-2">
+                                    Applied {{ $application->days_since_applied }} ago • 
+                                    Application ID: #{{ $application->id }}
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="contact-item">
+                                            <div class="contact-icon">
+                                                <i class="ti ti-mail text-primary"></i>
+                                            </div>
+                                            <div>
+                                                <div class="fw-medium">Email Address</div>
+                                                <div class="text-secondary">
+                                                    <a href="mailto:{{ $application->email }}" class="text-decoration-none">
+                                                        {{ $application->email }}
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="contact-item">
+                                            <div class="contact-icon">
+                                                <i class="ti ti-phone text-success"></i>
+                                            </div>
+                                            <div>
+                                                <div class="fw-medium">Phone Number</div>
+                                                <div class="text-secondary">
+                                                    <a href="tel:{{ $application->phone }}" class="text-decoration-none">
+                                                        {{ $application->phone }}
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Application Details --}}
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="contact-item">
+                                    <div class="contact-icon">
+                                        <i class="ti ti-briefcase text-info"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-medium">Position Applied</div>
+                                        <div class="text-secondary">{{ $position->title }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="contact-item">
+                                    <div class="contact-icon">
+                                        <i class="ti ti-calendar text-warning"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-medium">Application Date</div>
+                                        <div class="text-secondary">{{ $application->applied_at->format('M j, Y') }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="contact-item">
+                                    <div class="contact-icon">
+                                        <i class="ti ti-clock text-orange"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-medium">Time Since Applied</div>
+                                        <div class="text-secondary">{{ $application->days_since_applied }} ago</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Cover Letter/Message --}}
+                        @if($application->message)
+                        <div class="mt-4">
+                            <h5 class="mb-2">
+                                <i class="ti ti-message-circle me-2"></i>
+                                Cover Letter / Message
+                            </h5>
+                            <div class="message-content">
+                                <div class="text-body">{{ $application->message }}</div>
+                            </div>
+                        </div>
+                        @else
+                        <div class="mt-4">
+                            <div class="alert alert-info">
+                                <div class="d-flex">
+                                    <div>
+                                        <i class="ti ti-info-circle me-2"></i>
+                                    </div>
+                                    <div>
+                                        <strong>No cover letter provided</strong><br>
+                                        The applicant did not include a cover letter or message with their application.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
 
         {{-- CV Preview --}}
         @if($application->cv_file_path)
-        <div class="card mt-3">
+        <div class="card">
             <div class="card-header">
                 <h3 class="card-title">
                     <i class="ti ti-file-text me-2"></i>
@@ -81,7 +271,7 @@
                 <div class="card-actions">
                     <a href="{{ route('careers.positions.applications.download-cv', [$position, $application]) }}" 
                        class="btn btn-sm btn-primary">
-                        <i class="ti ti-download me-1"></i> Download PDF
+                        <i class="ti ti-download me-1"></i> Download CV
                     </a>
                 </div>
             </div>
@@ -95,6 +285,14 @@
                            <a href="{{ $application->cv_file_url }}">Download the PDF</a>.</p>
                     </iframe>
                 </div>
+            </div>
+        </div>
+        @else
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="ti ti-file-x icon mb-3 text-secondary" style="font-size: 3rem;"></i>
+                <h3>No CV Attached</h3>
+                <p class="text-secondary">This application does not include a CV file.</p>
             </div>
         </div>
         @endif
@@ -235,8 +433,8 @@
                         <strong>{{ $application->applied_at->format('M j, Y') }}</strong>
                     </div>
                     <div class="list-group-item d-flex justify-content-between px-0">
-                        <span>Days Since Applied</span>
-                        <strong>{{ $application->applied_at->diffInDays(now()) }} days</strong>
+                        <span>Time Since Applied</span>
+                        <strong>{{ $application->days_since_applied }}</strong>
                     </div>
                     <div class="list-group-item d-flex justify-content-between px-0">
                         <span>CV Attached</span>
@@ -270,10 +468,60 @@
             </div>
         </div>
 
-        {{-- Related Applications --}}
+        {{-- Position Details --}}
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="ti ti-briefcase me-2"></i>
+                    Position Details
+                </h3>
+                <div class="card-actions">
+                    <a href="{{ route('careers.positions.edit', $position) }}" class="btn btn-sm btn-outline-primary">
+                        <i class="ti ti-edit"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <h5 class="mb-1">{{ $position->title }}</h5>
+                    <div class="text-secondary">
+                        <i class="ti ti-map-pin me-1"></i>
+                        {{ $position->location }} • 
+                        <span class="badge bg-primary-lt">{{ $position->type_text }}</span>
+                    </div>
+                </div>
+                <div class="list-group list-group-flush">
+                    <div class="list-group-item d-flex justify-content-between px-0">
+                        <span>Position Status</span>
+                        <span class="badge bg-{{ $position->status_color }}-lt">{{ $position->status_text }}</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between px-0">
+                        <span>Posted Date</span>
+                        <strong>{{ $position->posted_at->format('M j, Y') }}</strong>
+                    </div>
+                    @if($position->closing_date)
+                    <div class="list-group-item d-flex justify-content-between px-0">
+                        <span>Closing Date</span>
+                        <strong>{{ $position->closing_date->format('M j, Y') }}</strong>
+                    </div>
+                    @endif
+                    <div class="list-group-item d-flex justify-content-between px-0">
+                        <span>Total Applications</span>
+                        <strong>{{ $position->applications_count }}</strong>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between px-0">
+                        <span>Pending Review</span>
+                        <strong class="text-warning">{{ $position->pending_applications_count }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Other Applications for this Position --}}
         @php
             $otherApplications = $position->applications()
                 ->where('id', '!=', $application->id)
+                ->orderBy('applied_at', 'desc')
                 ->limit(5)
                 ->get();
         @endphp
@@ -287,7 +535,7 @@
                 </h3>
                 <div class="card-actions">
                     <a href="{{ route('careers.positions.applications.index', $position) }}" class="btn btn-sm btn-outline-primary">
-                        View All
+                        View All ({{ $position->applications_count - 1 }})
                     </a>
                 </div>
             </div>
@@ -296,9 +544,14 @@
                     @foreach($otherApplications as $otherApp)
                     <div class="list-group-item px-0">
                         <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <div class="fw-medium">{{ $otherApp->name }}</div>
-                                <small class="text-secondary">{{ $otherApp->applied_ago }}</small>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar avatar-sm me-3" style="background-color: var(--tblr-primary-lt);">
+                                    {{ strtoupper(substr($otherApp->name, 0, 2)) }}
+                                </div>
+                                <div>
+                                    <div class="fw-medium">{{ $otherApp->name }}</div>
+                                    <small class="text-secondary">Applied {{ $otherApp->days_since_applied }} ago</small>
+                                </div>
                             </div>
                             <div class="text-end">
                                 <span class="badge bg-{{ $otherApp->status_color }}-lt">{{ $otherApp->status_text }}</span>

@@ -173,7 +173,7 @@
             <div>
                 <strong id="selected-count">0</strong> applications selected
             </div>
-            <div class="btn-list">
+            <div class="btn-list ms-2">
                 <select class="form-select" id="bulk-status-select" style="width: auto;">
                     <option value="">Change Status</option>
                     <option value="reviewed">Mark as Reviewed</option>
@@ -199,7 +199,7 @@
             <div class="card-actions">
                 <div class="btn-list">
                     @if($applications->count() > 0)
-                    <label class="form-check">
+                    <label class="form-check mb-0">
                         <input class="form-check-input" type="checkbox" id="select-all">
                         <span class="form-check-label">Select All</span>
                     </label>
@@ -251,16 +251,16 @@
                                     <div class="btn-list">
                                         @if($application->cv_file_path)
                                         <a href="{{ route('careers.positions.applications.download-cv', [$position, $application]) }}" 
-                                           class="btn btn-sm btn-outline-primary" title="Download CV">
+                                           class="btn btn-outline-primary btn-icon" title="Download CV">
                                             <i class="ti ti-download"></i>
                                         </a>
                                         @endif
                                         <a href="{{ route('careers.positions.applications.show', [$position, $application]) }}" 
-                                           class="btn btn-sm btn-primary" title="View Details">
+                                           class="btn btn-primary btn-icon" title="View Details">
                                             <i class="ti ti-eye"></i>
                                         </a>
                                         <div class="dropdown">
-                                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" 
+                                            <button class="btn btn-outline-secondary btn-icon dropdown-toggle" 
                                                     data-bs-toggle="dropdown" title="Change Status">
                                                 <i class="ti ti-dots-vertical"></i>
                                             </button>

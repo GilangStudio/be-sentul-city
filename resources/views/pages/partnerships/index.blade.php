@@ -253,7 +253,7 @@
                             @endif
                             <button type="submit" class="btn btn-primary" id="save-page-btn">
                                 <i class="ti ti-device-floppy me-1"></i>
-                                {{ $partnershipPage ? 'Update' : 'Create' }} Page Settings
+                                {{ $partnershipPage ? 'Update' : 'Save' }} Page Settings
                             </button>
                         </div>
                     </div>
