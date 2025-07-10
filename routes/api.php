@@ -2,25 +2,31 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\API\NewsApiController;
+use App\Http\Controllers\API\PageApiController;
 use App\Http\Controllers\API\HomePageApiController;
 use App\Http\Controllers\API\CareerApplicationApiController;
 
-// Homepage API Routes
-Route::prefix('homepage')->group(function () {
-    Route::get('/', [HomePageApiController::class, 'getHomepageData']);
-    
-    // Individual section endpoints for granular access
-    Route::get('/banners', [HomePageApiController::class, 'getBanners']);
-    Route::get('/news', [HomePageApiController::class, 'getNews']);
-    Route::get('/promos', [HomePageApiController::class, 'getPromos']);
-    Route::get('/neighborhood-guide', [HomePageApiController::class, 'getNeighborhoodGuide']);
-    Route::get('/etown-section', [HomePageApiController::class, 'getETownSection']);
-    Route::get('/about-us', [HomePageApiController::class, 'getAboutUs']);
-});
+//route for get header and footer
+Route::get('/layout', [PageApiController::class, 'getLayoutData']);
+
+Route::get('/homepage', [HomePageApiController::class, 'getHomepageData']);
+Route::get('/about', [PageApiController::class, 'getAboutUsPage']);
+Route::get('/partnership', [PageApiController::class, 'getPartnershipPage']);
+
+Route::get('/services', [PageApiController::class, 'getServicesPage']);
+Route::get('/new-residents', [PageApiController::class, 'getNewResidentsPage']);
+// Route::get('/etown', [PageApiController::class, 'getETownPage']);
+Route::get('/promo', [PageApiController::class, 'getPromosPage']);
 
 Route::prefix('career')->group(function () {
-    Route::get('/page', [CareerApplicationApiController::class, 'getPageSettings']);
+    Route::get('/', [CareerApplicationApiController::class, 'getCareerPage']);
     Route::get('/positions', [CareerApplicationApiController::class, 'getPositions']);
     Route::get('/positions/{position}', [CareerApplicationApiController::class, 'getPosition']);
     Route::post('/apply', [CareerApplicationApiController::class, 'submitApplication']);
+});
+
+Route::prefix('news')->group(function () {
+    Route::get('/', [NewsApiController::class, 'getNewsPage']);
+    Route::get('/{slug}', [NewsApiController::class, 'getNewsArticle']);
 });

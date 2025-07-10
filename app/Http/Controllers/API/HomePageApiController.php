@@ -2,18 +2,21 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Http\Controllers\Controller;
-use App\Models\HomePageSetting;
-use App\Models\HomePageBanner;
 use App\Models\News;
 use App\Models\Promo;
-use App\Models\NewResidentsPageSetting;
 use App\Models\ETownSection;
-use App\Models\AboutUsPageSetting;
+use App\Models\HomePageBanner;
+use App\Traits\HasCompanyData;
+use App\Models\HomePageSetting;
 use Illuminate\Http\JsonResponse;
+use App\Models\AboutUsPageSetting;
+use App\Http\Controllers\Controller;
+use App\Models\NewResidentsPageSetting;
 
 class HomePageApiController extends Controller
 {
+    use HasCompanyData;
+
     /**
      * Get complete homepage data for landing page
      */
@@ -21,13 +24,15 @@ class HomePageApiController extends Controller
     {
         try {
             $data = [
+                'page_content' => [
+                    'banners' => $this->getBannersData(),
+                    'news' => $this->getNewsData(),
+                    'promos' => $this->getPromosData(),
+                    'neighborhood_guide' => $this->getNeighborhoodGuideData(),
+                    'etown_section' => $this->getETownSectionData(),
+                    'about_us' => $this->getAboutUsData(),
+                ],
                 'seo' => $this->getSeoData(),
-                'banners' => $this->getBannersData(),
-                'news' => $this->getNewsData(),
-                'promos' => $this->getPromosData(),
-                'neighborhood_guide' => $this->getNeighborhoodGuideData(),
-                'etown_section' => $this->getETownSectionData(),
-                'about_us' => $this->getAboutUsData(),
             ];
 
             return response()->json([

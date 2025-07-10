@@ -2,21 +2,79 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 use App\Models\CareerPosition;
 use App\Models\CareerApplication;
 use App\Models\CareerPageSetting;
-use Illuminate\Http\Request;
-use App\Services\ImageService;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\JsonResponse;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Validator;
 
 class CareerApplicationApiController extends Controller
 {
     /**
      * Get career page settings
      */
-    public function getPageSettings(): JsonResponse
+    // public function getCareerPage(): JsonResponse
+    // {
+    //     try {
+    //         $careerPage = CareerPageSetting::first();
+            
+    //         if (!$careerPage || !$careerPage->is_active) {
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'message' => 'Career page is not available'
+    //             ], 404);
+    //         }
+
+    //         $positions = CareerPosition::applicable()
+    //                                 ->ordered()
+    //                                 ->select('id', 'title', 'slug', 'type', 'location', 'posted_at', 'closing_date')
+    //                                 ->get()
+    //                                 ->map(function ($position) {
+    //                                     return [
+    //                                         'id' => $position->id,
+    //                                         'title' => $position->title,
+    //                                         'slug' => $position->slug,
+    //                                         'type' => $position->type_text,
+    //                                         'location' => $position->location,
+    //                                         'posted_at' => $position->posted_at->format('d F Y'),
+    //                                         'days_posted' => $position->days_posted_text,
+    //                                         'closing_date' => $position->closing_date ? $position->closing_date->format('d F Y') : null,
+    //                                         'days_posted' => $position->days_posted_text,
+    //                                     ];
+    //                                 });
+
+    //         $pageData = [
+    //             'banner' => [
+    //                 'image_url' => $careerPage->banner_image_url,
+    //                 'alt_text' => $careerPage->banner_alt_text,
+    //                 'title' => $careerPage->banner_title,
+    //             ],
+    //             'positions' => $positions,
+    //             'seo' => [
+    //                 'meta_title' => $careerPage->meta_title_display,
+    //                 'meta_description' => $careerPage->meta_description_display,
+    //                 'meta_keywords' => $careerPage->meta_keywords_display,
+    //             ],
+    //         ];
+
+    //         return response()->json([
+    //             'success' => true,
+    //             'data' => $pageData,
+    //             'message' => 'Career page settings retrieved successfully'
+    //         ]);
+
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Failed to retrieve career page settings',
+    //             'error' => $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
+
+    public function getCareerPage(Request $request): JsonResponse
     {
         try {
             $careerPage = CareerPageSetting::first();
@@ -28,11 +86,47 @@ class CareerApplicationApiController extends Controller
                 ], 404);
             }
 
+            // Pagination parameters
+            $perPage = 6; // Fixed 6 items per page as requested
+            $page = $request->get('page', 1);
+
+            // Get paginated positions
+            $positionsQuery = CareerPosition::applicable()
+                                          ->ordered()
+                                          ->select('id', 'title', 'slug', 'type', 'location', 'posted_at', 'closing_date');
+
+            $positions = $positionsQuery->paginate($perPage, ['*'], 'page', $page);
+
+            $positionsData = $positions->getCollection()->map(function ($position) {
+                return [
+                    'id' => $position->id,
+                    'title' => $position->title,
+                    'slug' => $position->slug,
+                    'type' => $position->type_text,
+                    'location' => $position->location,
+                    'posted_at' => $position->posted_at->format('d F Y'),
+                    'days_posted' => $position->days_posted_text,
+                    'closing_date' => $position->closing_date ? $position->closing_date->format('d F Y') : null,
+                ];
+            });
+
             $pageData = [
                 'banner' => [
                     'image_url' => $careerPage->banner_image_url,
                     'alt_text' => $careerPage->banner_alt_text,
                     'title' => $careerPage->banner_title,
+                ],
+                'positions' => $positionsData,
+                'pagination' => [
+                    'current_page' => $positions->currentPage(),
+                    'last_page' => $positions->lastPage(),
+                    'per_page' => $positions->perPage(),
+                    'total' => $positions->total(),
+                    'from' => $positions->firstItem(),
+                    'to' => $positions->lastItem(),
+                    'has_more_pages' => $positions->hasMorePages(),
+                    'prev_page_url' => $positions->previousPageUrl(),
+                    'next_page_url' => $positions->nextPageUrl(),
                 ],
                 'seo' => [
                     'meta_title' => $careerPage->meta_title_display,
@@ -44,13 +138,13 @@ class CareerApplicationApiController extends Controller
             return response()->json([
                 'success' => true,
                 'data' => $pageData,
-                'message' => 'Career page settings retrieved successfully'
+                'message' => 'Career page data retrieved successfully'
             ]);
 
         } catch (\Exception $e) {
             return response()->json([
-                'success' => false,
-                'message' => 'Failed to retrieve career page settings',
+               'success' => false,
+               'message' => 'Failed to retrieve career page data',
                 'error' => $e->getMessage()
             ], 500);
         }
@@ -59,30 +153,113 @@ class CareerApplicationApiController extends Controller
     /**
      * Get all open career positions
      */
-    public function getPositions(): JsonResponse
+    // public function getPositions(): JsonResponse
+    // {
+    //     try {
+    //         $positions = CareerPosition::applicable()
+    //                                 ->ordered()
+    //                                 ->select('id', 'title', 'slug', 'type', 'location', 'posted_at', 'closing_date')
+    //                                 ->get()
+    //                                 ->map(function ($position) {
+    //                                     return [
+    //                                         'id' => $position->id,
+    //                                         'title' => $position->title,
+    //                                         'slug' => $position->slug,
+    //                                         'type' => $position->type_text,
+    //                                         'location' => $position->location,
+    //                                         'posted_at' => $position->posted_at->format('d F Y'),
+    //                                         'days_posted' => $position->days_posted_text,
+    //                                         'closing_date' => $position->closing_date ? $position->closing_date->format('d F Y') : null,
+    //                                         'days_posted' => $position->days_posted_text,
+    //                                     ];
+    //                                 });
+
+    //         return response()->json([
+    //             'success' => true,
+    //             'data' => $positions,
+    //             'message' => 'Career positions retrieved successfully'
+    //         ]);
+
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Failed to retrieve career positions',
+    //             'error' => $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
+    /**
+     * Get all open career positions with pagination
+     */
+    public function getPositions(Request $request): JsonResponse
     {
         try {
-            $positions = CareerPosition::applicable()
-                                    ->ordered()
-                                    ->select('id', 'title', 'slug', 'type', 'location', 'posted_at', 'closing_date')
-                                    ->get()
-                                    ->map(function ($position) {
-                                        return [
-                                            'id' => $position->id,
-                                            'title' => $position->title,
-                                            'slug' => $position->slug,
-                                            'type' => $position->type_text,
-                                            'location' => $position->location,
-                                            'posted_at' => $position->posted_at->format('d F Y'),
-                                            'days_posted' => $position->days_posted_text,
-                                            'closing_date' => $position->closing_date ? $position->closing_date->format('d F Y') : null,
-                                            'days_posted' => $position->days_posted_text,
-                                        ];
-                                    });
+            // Pagination parameters
+            $perPage = min($request->get('per_page', 6), 50); // Max 50 items per page, default 10
+            $page = $request->get('page', 1);
+
+            // Optional filters
+            // $type = $request->get('type'); // Filter by employment type
+            // $location = $request->get('location'); // Filter by location
+
+            // Build query
+            $query = CareerPosition::applicable()
+                                  ->ordered()
+                                  ->select('id', 'title', 'slug', 'type', 'location', 'posted_at', 'closing_date');
+
+            // Apply filters if provided
+            // if ($type) {
+            //     $query->where('type', $type);
+            // }
+
+            // if ($location) {
+            //     $query->where('location', 'LIKE', '%' . $location . '%');
+            // }
+
+            // Get paginated results
+            $positions = $query->paginate($perPage, ['*'], 'page', $page);
+
+            // Transform data
+            $positionsData = $positions->getCollection()->map(function ($position) {
+                return [
+                    'id' => $position->id,
+                    'title' => $position->title,
+                    'slug' => $position->slug,
+                    'type' => $position->type_text,
+                    'location' => $position->location,
+                    'posted_at' => $position->posted_at->format('d F Y'),
+                    'days_posted' => $position->days_posted_text,
+                    'closing_date' => $position->closing_date ? $position->closing_date->format('d F Y') : null,
+                ];
+            });
+
+            $data = [
+                'positions' => $positionsData,
+                // 'filters' => [
+                //     'current_type' => $type,
+                //     'current_location' => $location,
+                // ],
+                'pagination' => [
+                    'current_page' => $positions->currentPage(),
+                    'last_page' => $positions->lastPage(),
+                    'per_page' => $positions->perPage(),
+                    'total' => $positions->total(),
+                    'from' => $positions->firstItem(),
+                    'to' => $positions->lastItem(),
+                    'has_more_pages' => $positions->hasMorePages(),
+                    'prev_page_url' => $positions->previousPageUrl(),
+                    'next_page_url' => $positions->nextPageUrl(),
+                ],
+                'summary' => [
+                    'total_positions' => $positions->total(),
+                    'showing_from' => $positions->firstItem(),
+                    'showing_to' => $positions->lastItem(),
+                ],
+            ];
 
             return response()->json([
                 'success' => true,
-                'data' => $positions,
+                'data' => $data,
                 'message' => 'Career positions retrieved successfully'
             ]);
 
